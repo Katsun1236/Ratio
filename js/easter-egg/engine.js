@@ -1,6 +1,7 @@
 // js/easter-egg/engine.js
 // NOUVEAUX GRAPHISMES : Draw personnalisé pour chaque entité.
 // NOUVELLE IA BOSS : Vrais patterns d'attaque continus.
+// AUDIT UPDATE : Coyote Time, Jump Buffering, Magnétisme, Saut variable et Caméra Axe Y.
 
 import { groundY, clouds, stars, levels } from './config.js';
 import { keys } from './input.js';
@@ -13,13 +14,19 @@ let gameLoop;
 let gameActive = false;
 export const isGameActive = () => gameActive;
 
-let currentLevelIdx = 0; let cameraX = 0; let frameCount = 0; let screenShake = 0;
+// AUDIT UPDATE : Ajout de cameraY
+let currentLevelIdx = 0; let cameraX = 0; let cameraY = 0; let frameCount = 0; let screenShake = 0;
 let hitStopFrames = 0; let gameState = 'playing'; let cinematicTimer = 0; let cinematicState = '';
 
-const gravity = 0.55; const defaultFriction = 0.8; const mudFriction = 0.95; 
+// AUDIT UPDATE : Physique légèrement plus "lourde" et nerveuse
+const gravity = 0.65; const defaultFriction = 0.8; const mudFriction = 0.95; 
+
+// AUDIT UPDATE : Timers pour le Game Feel (Coyote Time & Jump Buffer)
+let coyoteFrames = 0;
+let jumpBufferFrames = 0;
 
 const player = {
-    x: 50, y: 200, width: 24, height: 32, vx: 0, vy: 0, speed: 6, jumpPower: -12.5,
+    x: 50, y: 200, width: 24, height: 32, vx: 0, vy: 0, speed: 6.5, jumpPower: -13.5,
     grounded: false, facingRight: true, squash: 1, stretch: 1, hp: 5, maxHp: 5, invincibleTimer: 0,
     jumps: 0, spawnX: 50, spawnY: 200, hasWallJump: false, hasDash: false, 
     canDash: true, isDashing: false, dashTimer: 0, dashDir: 1, wallJumpTimer: 0 
@@ -138,6 +145,9 @@ function loadLevel(idx) {
     player.facingRight = true; player.hp = player.maxHp; player.invincibleTimer = 0; player.jumps = 0;
     player.isDashing = false; player.canDash = true; player.wallJumpTimer = 0;
     
+    cameraX = 0; cameraY = 0; // Reset caméras
+    coyoteFrames = 0; jumpBufferFrames = 0; // Reset timers
+
     enemies = levelData.enemies; items = levelData.items; npcs = levelData.npcs; 
     buzzsaws = levelData.buzzsaws; chests = [];
     completedTasks = 0; levelTasks = levelData.tasks ? levelData.tasks.length : 0;
@@ -193,6 +203,8 @@ function applyDamage(desc, knockbackX = 0, knockbackY = -6) {
     player.invincibleTimer = 120; // 2 secondes a 60 FPS
     player.vx = knockbackX;
     player.vy = knockbackY;
+    hitStopFrames = 12; // Grosse pause à l'impact
+    screenShake = 15;
     spawnParticles(player.x, player.y, '#ef4444', 14);
     spawnText(player.x, player.y - 20, "-1 PV", '#ef4444', '24px');
     if (player.hp <= 0) {
@@ -202,6 +214,7 @@ function applyDamage(desc, knockbackX = 0, knockbackY = -6) {
         restartBtn.onclick = () => {
             player.hp = player.maxHp; player.x = player.spawnX; player.y = player.spawnY; player.vx = 0; player.vy = 0; player.invincibleTimer = 120; player.wallJumpTimer = 0;
             cameraX = player.x - canvas.width / 2;
+            cameraY = player.y - canvas.height / 2;
             if (levelData.boss && !levelData.boss.dead) {
                 levelData.boss.hp = levelData.boss.maxHp; levelData.boss.x = levelData.boss.startX;
                 levelData.boss.state = 'idle'; levelData.boss.isActive = false; levelData.boss.hasDoneIntro = false; gameState = 'playing';
@@ -283,6 +296,19 @@ function update() {
         return;
     }
 
+    // Gestion des timers de tolérance pour les contrôles
+    if (player.grounded) {
+        coyoteFrames = 6; // 6 frames de grâce après avoir quitté le bord
+    } else {
+        if (coyoteFrames > 0) coyoteFrames--;
+    }
+
+    if (keys.jumpJustPressed) {
+        jumpBufferFrames = 6; // Enregistre l'input pendant 6 frames
+    } else {
+        if (jumpBufferFrames > 0) jumpBufferFrames--;
+    }
+
     // GESTION PLATEFORMES FANTOMES & SCIES
     for (let p of levelData.platforms) {
         if (p.type === 'ghost_plat') {
@@ -314,12 +340,15 @@ function update() {
         cinematicTimer++;
         if (cinematicState === 'pan') {
             let targetCamX = levelData.boss.x - canvas.width/2 + levelData.boss.w/2; cameraX += (targetCamX - cameraX) * 0.05;
+            // On centre aussi l'axe Y sur le boss
+            let targetCamY = levelData.boss.y - canvas.height/2 + levelData.boss.h/2; cameraY += (targetCamY - cameraY) * 0.05;
             if (cinematicTimer > 60) { cinematicState = 'roar'; cinematicTimer = 0; }
         } else if (cinematicState === 'roar') {
             if (cinematicTimer === 1) { playSound('boss_intro'); screenShake = 20; }
             if (cinematicTimer > 60) { cinematicState = 'pan_back'; cinematicTimer = 0; }
         } else if (cinematicState === 'pan_back') {
             let targetCamX = player.x - canvas.width/2 + player.width/2; cameraX += (targetCamX - cameraX) * 0.1;
+            let targetCamY = player.y - canvas.height/2 + player.height/2; cameraY += (targetCamY - cameraY) * 0.1;
             if (Math.abs(cameraX - targetCamX) < 10 || cinematicTimer > 60) { gameState = 'playing'; activateBossUI(levelData.boss); }
         }
         draw(); gameLoop = requestAnimationFrame(update); return; 
@@ -369,18 +398,19 @@ function update() {
         player.isDashing = true; player.dashTimer = 12; player.canDash = false;
         player.dashDir = player.facingRight ? 1 : -1; player.vy = 0; player.wallJumpTimer = 0;
         playSound('dash'); spawnParticles(player.x, player.y+10, '#3b82f6', 15);
+        screenShake = 3; // Petit kick visuel au dash
     }
     keys.dashJustPressed = false;
 
     if (player.isDashing) {
-        player.vx = player.dashDir * 14; player.dashTimer--; player.vy = 0; 
-        if (frameCount % 3 === 0) ghosts.push({ x: player.x, y: player.y, squash: player.squash, stretch: player.stretch, facingRight: player.facingRight, life: 1.0 });
+        player.vx = player.dashDir * 15; player.dashTimer--; player.vy = 0; 
+        if (frameCount % 2 === 0) ghosts.push({ x: player.x, y: player.y, squash: player.squash, stretch: player.stretch, facingRight: player.facingRight, life: 1.0 });
         if (player.dashTimer <= 0) player.isDashing = false;
     } else if (player.wallJumpTimer > 0) {
         player.wallJumpTimer--;
     } else {
-        if (keys.left) { player.vx -= 1.0; player.facingRight = false; }
-        if (keys.right) { player.vx += 1.0; player.facingRight = true; }
+        if (keys.left) { player.vx -= 1.2; player.facingRight = false; }
+        if (keys.right) { player.vx += 1.2; player.facingRight = true; }
         player.vx *= currentFriction;
     }
 
@@ -416,28 +446,38 @@ function update() {
         }
     }
 
-    if (!player.isDashing) { player.vy += gravity; if (player.vy > 14) player.vy = 14; }
+    if (!player.isDashing) { 
+        player.vy += gravity; 
+        // AUDIT UPDATE : Hauteur de saut variable (plus on lâche vite, plus on retombe vite)
+        if (!keys.jump && player.vy < -2 && player.wallJumpTimer === 0) {
+            player.vy *= 0.85; 
+        }
+        if (player.vy > 14) player.vy = 14; 
+    }
 
     let isWallSliding = false;
     if (player.hasWallJump && !player.grounded && player.vy > 0 && touchingWallDir !== 0 && !player.isDashing) {
-        isWallSliding = true; player.vy = 2; player.canDash = true; player.jumps = 1;
-        if (frameCount % 5 === 0) spawnParticles(player.x + (touchingWallDir===1?player.width:0), player.y + 10, '#d4d4d8', 2);
+        isWallSliding = true; player.vy = 2.5; player.canDash = true; player.jumps = 1; // Glisse contrôlée
+        if (frameCount % 4 === 0) spawnParticles(player.x + (touchingWallDir===1?player.width:0), player.y + 10, '#d4d4d8', 3);
     }
 
-    if (keys.jumpJustPressed && !player.isDashing) {
+    // Utilisation du Jump Buffer et Coyote Time
+    if (jumpBufferFrames > 0 && !player.isDashing) {
         if (isWallSliding || (touchingWallDir !== 0 && !player.grounded)) {
-            playSound('jump'); player.vy = player.jumpPower * 0.85; player.vx = touchingWallDir * -12; 
-            player.facingRight = (touchingWallDir === -1); player.jumps = 1; player.wallJumpTimer = 15; 
+            playSound('jump'); player.vy = player.jumpPower * 0.85; player.vx = touchingWallDir * -13; 
+            player.facingRight = (touchingWallDir === -1); player.jumps = 1; player.wallJumpTimer = 12; 
             player.squash = 0.7; player.stretch = 1.3; spawnParticles(player.x + (touchingWallDir===1?player.width:0), player.y + 16, '#d4d4d8', 12);
-        } else if (player.grounded) {
+            jumpBufferFrames = 0; coyoteFrames = 0;
+        } else if (coyoteFrames > 0) { // On est sur le sol ou on vient de le quitter (Coyote Time)
             playSound('jump'); player.vy = player.jumpPower; player.grounded = false; player.jumps = 1;
             player.squash = 0.6; player.stretch = 1.4; spawnParticles(player.x + 12, player.y + 32, '#d4d4d8', 8);
-        } else if (player.jumps === 1) {
+            jumpBufferFrames = 0; coyoteFrames = 0;
+        } else if (player.jumps === 1) { // Double saut
             playSound('jump'); player.vy = player.jumpPower * 0.9; player.jumps = 2;
             player.squash = 0.7; player.stretch = 1.3; spawnParticles(player.x + 12, player.y + 32, '#818cf8', 15);
+            jumpBufferFrames = 0;
         }
     }
-    keys.jumpJustPressed = false; 
 
     player.y += player.vy;
     const wasGrounded = player.grounded; player.grounded = false;
@@ -449,10 +489,12 @@ function update() {
             if (player.vy > 0) {
                 player.y = p.y - player.height; player.vy = 0; player.grounded = true;
                 player.jumps = 0; player.canDash = true; player.wallJumpTimer = 0; 
+                coyoteFrames = 6; // Recharge coyote timer à l'atterrissage
                 
                 if (p.type === 'bouncy') {
                     playSound('bounce'); player.vy = -18; player.grounded = false; player.jumps = 1;
                     player.squash = 0.5; player.stretch = 1.5; spawnParticles(player.x + 12, player.y + 32, '#ef4444', 15);
+                    coyoteFrames = 0; // Pas de coyote sur un bumper
                 }
                 if (p.type === 'fragile') {
                     if(p.state === 'idle') p.state = 'shaking'; p.timer++; if(p.timer > 25) p.state = 'falling';
@@ -463,7 +505,14 @@ function update() {
         }
     }
 
-    if (!wasGrounded && player.grounded) { player.squash = 1.4; player.stretch = 0.6; spawnParticles(player.x + 12, player.y + 32, '#a8a29e', 6); }
+    if (!wasGrounded && player.grounded) { 
+        if (!player.canDash && player.hasDash) {
+            // AUDIT UPDATE : Feedback visuel quand le dash se recharge en atterrissant
+            spawnParticles(player.x + 12, player.y + 32, '#60a5fa', 10);
+        }
+        player.squash = 1.4; player.stretch = 0.6; 
+        spawnParticles(player.x + 12, player.y + 32, '#a8a29e', 6); 
+    }
 
     for (let w of (levelData.water || [])) {
         if (player.y + player.height > w.y + 20 && player.x + player.width > w.x && player.x < w.x + w.w) {
@@ -480,11 +529,23 @@ function update() {
         }
     }
 
-    // Camera avec anticipation du mouvement pour mieux lire les sauts (notamment niveau 2).
-    let lookAhead = Math.max(-90, Math.min(90, player.vx * 14));
-    let targetCamX = player.x - canvas.width / 2 + player.width / 2 + lookAhead;
-    if (targetCamX < 0) targetCamX = 0; if (targetCamX > levelData.width - canvas.width) targetCamX = levelData.width - canvas.width;
+    // AUDIT UPDATE : Caméra Axe X et Axe Y !
+    let lookAheadX = Math.max(-90, Math.min(90, player.vx * 14));
+    let lookAheadY = player.vy > 6 ? player.vy * 6 : 0; // Regarde légèrement en bas si on tombe vite
+    
+    let targetCamX = player.x - canvas.width / 2 + player.width / 2 + lookAheadX;
+    let targetCamY = player.y - canvas.height / 2 + player.height / 2 + lookAheadY;
+    
+    // Limites de la caméra sur l'Axe X
+    if (targetCamX < 0) targetCamX = 0; 
+    if (targetCamX > levelData.width - canvas.width) targetCamX = levelData.width - canvas.width;
+    
+    // Limite de la caméra sur l'Axe Y (pour ne pas trop voir le vide en dessous du sol)
+    let bottomLimit = groundY + 120 - canvas.height;
+    if (targetCamY > bottomLimit) targetCamY = bottomLimit;
+    
     cameraX += (targetCamX - cameraX) * 0.14;
+    cameraY += (targetCamY - cameraY) * 0.14;
 
     if (screenShake > 0) { ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake); screenShake *= 0.9; }
 
@@ -516,8 +577,19 @@ function update() {
         } else if (frameCount % 60 === 0) spawnText(player.x, player.y - 40, "Tâches ou Coffre manquant !", '#ef4444');
     }
 
+    // Magnétisme des Items
     for (let i = items.length - 1; i >= 0; i--) {
-        let item = items[i]; item.y = item.baseY + Math.sin(frameCount * 0.1) * 5;
+        let item = items[i];
+        let distX = (player.x + player.width/2) - (item.x + item.w/2 || item.x);
+        let distY = (player.y + player.height/2) - (item.y + item.h/2 || item.y);
+        let dist = Math.sqrt(distX*distX + distY*distY);
+        
+        if (dist < 100) { 
+            item.x += distX * 0.1;
+            item.baseY += distY * 0.1; 
+        }
+        item.y = item.baseY + Math.sin(frameCount * 0.1) * 5;
+
         if (!item.collected && checkCollision(player, item)) {
             item.collected = true; if (player.hp < player.maxHp) player.hp++;
             spawnParticles(item.x + 10, item.y + 10, '#ef4444', 25); spawnText(item.x, item.y, "+1 PV", '#ef4444');
@@ -527,7 +599,11 @@ function update() {
 
     for (let s of (levelData.stars || [])) {
         if (s.collected) continue;
-        s.y += Math.sin(frameCount * 0.08 + s.x * 0.01) * 0.3;
+        let distX = (player.x + player.width/2) - s.x;
+        let distY = (player.y + player.height/2) - s.y;
+        if (Math.sqrt(distX*distX + distY*distY) < 120) { s.x += distX * 0.08; s.y += distY * 0.08; }
+        else s.y += Math.sin(frameCount * 0.08 + s.x * 0.01) * 0.3;
+
         if (checkCollision(player, { x: s.x - 10, y: s.y - 10, w: 20, h: 20 })) {
             s.collected = true;
             totalStarsCollected++;
@@ -540,7 +616,11 @@ function update() {
 
     for (let tool of (levelData.tools || [])) {
         if (tool.collected) continue;
-        tool.y += Math.sin(frameCount * 0.07 + tool.x * 0.015) * 0.25;
+        let distX = (player.x + player.width/2) - tool.x;
+        let distY = (player.y + player.height/2) - tool.y;
+        if (Math.sqrt(distX*distX + distY*distY) < 120) { tool.x += distX * 0.08; tool.y += distY * 0.08; }
+        else tool.y += Math.sin(frameCount * 0.07 + tool.x * 0.015) * 0.25;
+
         if (checkCollision(player, { x: tool.x - 12, y: tool.y - 12, w: 24, h: 24 })) {
             tool.collected = true;
             totalToolsCollected++;
@@ -570,7 +650,7 @@ function update() {
 
         if (player.invincibleTimer === 0 && checkCollision(player, e)) {
             if (!player.isDashing && player.vy > 0 && player.y + player.height * 0.5 < e.y) {
-                e.dead = true; player.vy = -10; hitStopFrames = 5; playSound('hit'); screenShake = 8;
+                e.dead = true; player.vy = -11; hitStopFrames = 8; playSound('hit'); screenShake = 8;
                 spawnParticles(e.x + e.w/2, e.y + e.h/2, '#fde047', 25); spawnText(e.x, e.y - 10, "CRASH!", '#fde047', '20px');
             } else if (!player.isDashing) {
                 if(applyDamage("Les nuisibles ont gagné.", (player.x < e.x) ? -12 : 12, -7)) return;
@@ -578,7 +658,6 @@ function update() {
         }
     }
 
-    // --- IA DES BOSS (CORRIGÉE : ATTAQUES CONSTANTES) ---
     if (levelData.boss && !levelData.boss.dead && gameState !== 'boss_intro') {
         let b = levelData.boss;
         
@@ -625,7 +704,6 @@ function update() {
                 }
             }
             else if (b.type === 'bramble') {
-                // BOSS FINAL : Bouge tout le temps et attaque en continu !
                 const phase2 = b.hp <= Math.ceil(b.maxHp * 0.5);
                 if (b.state === 'intro') {
                     b.state = 'move'; b.vx = -4; b.timer = 0;
@@ -634,7 +712,6 @@ function update() {
                     b.x += b.vx;
                     if (b.x < b.arenaMin || b.x + b.w > b.arenaMax) b.vx *= -1;
                     
-                    // Attaque Piques (toutes les 1s)
                     if (b.timer % (phase2 ? 36 : 60) === 0) {
                         playSound('hit');
                         levelData.projectiles.push({ x: b.x + b.w/2, y: b.y + 40, vx: (player.x > b.x ? 8 : -8), vy: -2, size: 15, color: '#991b1b', type: 'thorn', rot: 0 });
@@ -643,7 +720,6 @@ function update() {
                         }
                     }
                     
-                    // Saute parfois (toutes les 3s)
                     if (b.timer % (phase2 ? 120 : 180) === 0) { b.vy = phase2 ? -21 : -18; }
                 }
                 
@@ -651,7 +727,6 @@ function update() {
                 else { 
                     if (b.vy > 5) {
                         screenShake = 15; playSound('boss_hit');
-                        // Onde de choc en atterrissant
                         levelData.projectiles.push({ x: b.x+b.w/2, y: b.y+b.h-10, vx: 8, vy: 0, size: 20, color: '#b91c1c', type: 'shockwave', life: 150 });
                         levelData.projectiles.push({ x: b.x+b.w/2, y: b.y+b.h-10, vx: -8, vy: 0, size: 20, color: '#b91c1c', type: 'shockwave', life: 150 });
                     }
@@ -667,7 +742,7 @@ function update() {
                     if (b.hp <= 0) {
                         b.dead = true; 
                         if(b.type === 'bramble') {
-                            b.deathTimer = 0; b.state = 'dying'; // Animation de mort !
+                            b.deathTimer = 0; b.state = 'dying'; 
                         } else {
                             chests.push({ x: b.x + b.w/2 - 20, y: b.y + b.h - 40, w: 40, h: 40, item: b.reward, opened: false });
                             b.w = 0; 
@@ -690,14 +765,15 @@ function update() {
             }
         }
         
-        // Animation mort boss final
+        // AUDIT UPDATE : Feedback épique pour la mort du Boss Final
         if (b.dead && b.state === 'dying') {
             b.deathTimer++;
-            if (b.deathTimer % 5 === 0) spawnParticles(b.x + Math.random()*b.w, b.y + Math.random()*b.h, '#dc2626', 10);
+            if (b.deathTimer === 1) { hitStopFrames = 25; screenShake = 30; playSound('boss_hit'); }
+            if (b.deathTimer % 5 === 0) spawnParticles(b.x + Math.random()*b.w, b.y + Math.random()*b.h, '#dc2626', 15);
             if (b.deathTimer > 60) {
                 levelCompleted[currentLevelIdx] = true;
                 maxUnlockedLevel = Math.max(maxUnlockedLevel, currentLevelIdx);
-                return showGameOver("VICTOIRE MAGISTRALE !", "Le Hainaut est sauvé. Nouvelle campagne completee !", "Retour world map", true);
+                return showGameOver("VICTOIRE MAGISTRALE !", "Le Hainaut est sauvé. Nouvelle campagne complétée !", "Retour world map", true);
             }
         }
     }
@@ -705,7 +781,7 @@ function update() {
     draw(); gameLoop = requestAnimationFrame(update);
 }
 
-// --- DESSIN (CANVAS) COMPLETEMENT REVU ---
+// --- DESSIN (CANVAS) ---
 function drawWorldMap() {
     let bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
     bg.addColorStop(0, '#052e16');
@@ -724,7 +800,6 @@ function drawWorldMap() {
     }
     ctx.globalAlpha = 1;
 
-    // Allees du parc (theme jardin/paysagiste)
     ctx.strokeStyle = 'rgba(250, 204, 21, 0.45)';
     ctx.lineWidth = 10;
     ctx.beginPath();
@@ -770,7 +845,6 @@ function drawWorldMap() {
         ctx.fillText("★".repeat(Math.min(3, levelStarsCollected[i])), x, y + 28);
     }
 
-    // Deplacement fluide de l'avatar jardinier sur la carte.
     mapAvatarX += (mapAvatarTargetX - mapAvatarX) * 0.18;
     mapAvatarY += (mapAvatarTargetY - mapAvatarY) * 0.18;
     const step = Math.sin(frameCount * 0.25) * 2;
@@ -913,7 +987,6 @@ function drawDecorations(list) {
 }
 
 function draw() {
-    // Reset complet de la matrice pour eviter les translations cumulatives (screen shake).
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (gameState === 'world_map' || gameState === 'level_enter') {
@@ -935,43 +1008,46 @@ function draw() {
         ctx.fillStyle = '#fff';
         stars.forEach(s => {
             ctx.globalAlpha = Math.sin(frameCount * s.twinkleSpeed) * 0.5 + 0.5;
-            ctx.beginPath(); ctx.arc(s.x - cameraX * 0.05, s.y, s.size, 0, Math.PI*2); ctx.fill();
+            // AUDIT UPDATE : Parallaxe Verticale pour les étoiles
+            ctx.beginPath(); ctx.arc(s.x - cameraX * 0.05, s.y - cameraY * 0.05, s.size, 0, Math.PI*2); ctx.fill();
         }); ctx.globalAlpha = 1.0;
     }
     drawAmbientOverlay(time, ambience);
 
+    // AUDIT UPDATE : Parallaxe Verticale pour le Soleil
     let sunX = 700 - (cameraX * 0.03); 
+    let sunY = 100 - (cameraY * 0.03); 
     
-    // Soleil (Sans ShadowBlur pour les FPS)
     let sunRadius = 60; let haloPulse = Math.sin(frameCount*0.05)*20;
-    let sunGrad = ctx.createRadialGradient(sunX, 100, sunRadius, sunX, 100, sunRadius + 50 + haloPulse);
+    let sunGrad = ctx.createRadialGradient(sunX, sunY, sunRadius, sunX, sunY, sunRadius + 50 + haloPulse);
     sunGrad.addColorStop(0, (time === 'night') ? '#f8fafc' : (time === 'sunset' ? '#f87171' : '#fef08a'));
     sunGrad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, 100, sunRadius + 50 + haloPulse, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, sunY, sunRadius + 50 + haloPulse, 0, Math.PI*2); ctx.fill();
 
-    // God Rays (Rayons de lumiere dynamiques)
+    // God Rays
     if (time === 'morning' || time === 'midday') {
         ctx.save();
-        let rayGrad = ctx.createLinearGradient(sunX, 100, sunX + 400, 600);
+        let rayGrad = ctx.createLinearGradient(sunX, sunY, sunX + 400, sunY + 500);
         rayGrad.addColorStop(0, 'rgba(255,255,255,0.15)'); rayGrad.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = rayGrad;
-        ctx.beginPath(); ctx.moveTo(sunX, 100); ctx.lineTo(sunX - 200 + Math.sin(frameCount*0.01)*50, 600); ctx.lineTo(sunX + 600 + Math.cos(frameCount*0.01)*50, 600); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(sunX, sunY); ctx.lineTo(sunX - 200 + Math.sin(frameCount*0.01)*50, sunY + 500); ctx.lineTo(sunX + 600 + Math.cos(frameCount*0.01)*50, sunY + 500); ctx.fill();
         ctx.restore();
     }
 
     ctx.save();
-    ctx.translate(-cameraX * 0.15, 0);
+    // AUDIT UPDATE : Parallax Y (Montagnes/Collines lointaines)
+    ctx.translate(-cameraX * 0.15, -cameraY * 0.05);
     ctx.fillStyle = (time === 'sunset' || time === 'night') ? '#881337' : '#7dd3fc';
     ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(400, 100); ctx.lineTo(800, groundY); ctx.fill();
     ctx.beginPath(); ctx.moveTo(600, groundY); ctx.lineTo(1000, 150); ctx.lineTo(1400, groundY); ctx.fill();
     ctx.beginPath(); ctx.moveTo(1200, groundY); ctx.lineTo(1700, 100); ctx.lineTo(2200, groundY); ctx.fill();
     
-    ctx.translate(cameraX * 0.15 - cameraX * 0.3, 0);
+    ctx.translate(cameraX * 0.15 - cameraX * 0.3, cameraY * 0.05 - cameraY * 0.1);
     ctx.fillStyle = (time === 'sunset' || time === 'night') ? '#4c0519' : '#38bdf8';
     ctx.beginPath(); ctx.moveTo(-200, groundY); ctx.lineTo(150, 180); ctx.lineTo(600, groundY); ctx.fill();
     ctx.beginPath(); ctx.moveTo(500, groundY); ctx.lineTo(900, 220); ctx.lineTo(1300, groundY); ctx.fill();
     
-    ctx.translate(cameraX * 0.3 - cameraX * 0.5, 0);
+    ctx.translate(cameraX * 0.3 - cameraX * 0.5, cameraY * 0.1 - cameraY * 0.2);
     let treeColor = (time === 'sunset' || time === 'night') ? '#1e3a8a' : '#0369a1';
     for(let i=0; i<levelData.width*2; i+=350) {
         ctx.fillStyle = '#1e3a8a'; ctx.fillRect(i+140, groundY-100, 20, 100);
@@ -980,8 +1056,10 @@ function draw() {
         ctx.beginPath(); ctx.arc(i+110, groundY-80, 50, 0, Math.PI*2); ctx.fill();
         ctx.beginPath(); ctx.arc(i+190, groundY-80, 50, 0, Math.PI*2); ctx.fill();
     }
-    ctx.translate(cameraX * 0.5 - cameraX, 0); 
-
+    
+    // Le monde "réel" bénéficie du reste de la translation (-cameraX, -cameraY total)
+    ctx.translate(cameraX * 0.5 - cameraX, cameraY * 0.2 - cameraY); 
+    
     ctx.fillStyle = (time === 'sunset' || time === 'night') ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.9)';
     clouds.forEach(c => {
         let float = Math.sin(frameCount*0.02 + c.x)*5;
@@ -1006,13 +1084,12 @@ function draw() {
     }
     drawDecorations(levelData.decorations);
 
-    // Scies circulaires (Dangers)
+    // Scies circulaires
     for (let s of buzzsaws) {
         ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(frameCount * 0.2);
         ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.arc(0, 0, s.size, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(0, 0, s.size*0.7, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 0, s.size*0.2, 0, Math.PI*2); ctx.fill();
-        // Dents de la scie
         ctx.fillStyle = '#cbd5e1';
         for(let i=0; i<8; i++) {
             ctx.rotate(Math.PI/4);
@@ -1023,8 +1100,8 @@ function draw() {
 
     for (let p of levelData.platforms) {
         if(p.type === 'ghost_plat') {
-            if (!p.active) continue; // On dessine pas si inactif
-            ctx.globalAlpha = 0.6 + Math.sin(frameCount*0.2)*0.2; // Clignotement
+            if (!p.active) continue; 
+            ctx.globalAlpha = 0.6 + Math.sin(frameCount*0.2)*0.2; 
         }
         if(p.type === 'fragile' && p.state === 'falling') ctx.globalAlpha = 0.5;
 
@@ -1094,7 +1171,6 @@ function draw() {
         } else { ctx.fillStyle = '#000'; ctx.fillRect(c.x + 4, c.y + 4, c.w - 8, c.h - 8); }
     }
 
-    // Le Tracteur
     if (!levelData.isBoss) {
         let g = levelData.goal;
         let isGoalOpen = completedTasks >= levelTasks && (!levelData.boss || levelData.boss.dead) && chests.every(c => c.opened);
@@ -1155,7 +1231,7 @@ function draw() {
         if (s.collected) continue;
         const spin = frameCount * 0.12;
         const px = s.x;
-        const py = s.y + Math.sin(frameCount * 0.1 + s.x * 0.02) * 5;
+        const py = s.y; 
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(spin);
@@ -1178,7 +1254,7 @@ function draw() {
     for (let tool of (levelData.tools || [])) {
         if (tool.collected) continue;
         const px = tool.x;
-        const py = tool.y + Math.sin(frameCount * 0.12 + tool.x * 0.015) * 4;
+        const py = tool.y; 
         ctx.save();
         ctx.translate(px, py);
         ctx.strokeStyle = '#fef3c7';
@@ -1211,13 +1287,13 @@ function draw() {
     for (let g of ghosts) {
         ctx.save(); ctx.translate(g.x + player.width/2, g.y + player.height);
         if (!g.facingRight) ctx.scale(-1, 1); ctx.scale(g.squash, g.stretch);
-        ctx.globalAlpha = g.life * 0.4; ctx.fillStyle = '#3b82f6';
+        ctx.globalAlpha = g.life * 0.6; ctx.fillStyle = '#93c5fd';
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-10, -28, 20, 18, 5) : ctx.fillRect(-10, -28, 20, 18); ctx.fill();
         ctx.beginPath(); ctx.arc(0, -38, 9, 0, Math.PI*2); ctx.fill(); ctx.restore();
     }
     ctx.globalAlpha = 1.0;
 
-    // LE JOUEUR (Modèle affiné)
+    // LE JOUEUR
     if (player.invincibleTimer % 4 < 2) { 
         ctx.save(); ctx.translate(player.x + player.width/2, player.y + player.height);
         if (!player.facingRight) ctx.scale(-1, 1);
@@ -1227,7 +1303,7 @@ function draw() {
         
         let walkAnim = (Math.abs(player.vx) > 0.1 && player.grounded) ? Math.sin(frameCount * 0.5) * 25 : (!player.grounded ? 30 : 0);
 
-        // Jambes (S'étirent en sautant)
+        // Jambes
         ctx.fillStyle = '#1e293b'; 
         ctx.save(); ctx.translate(-4, -12); ctx.rotate(-walkAnim * Math.PI/180); ctx.fillRect(-2, 0, 4, player.grounded? 14 : 20); ctx.restore();
         ctx.save(); ctx.translate(4, -12); ctx.rotate(walkAnim * Math.PI/180); ctx.fillRect(-2, 0, 4, player.grounded? 14 : 10); ctx.restore();
@@ -1235,20 +1311,20 @@ function draw() {
         // Corps
         ctx.fillStyle = player.hasDash ? '#f59e0b' : '#84cc16'; 
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-10, -28, 20, 18, 5) : ctx.fillRect(-10, -28, 20, 18); ctx.fill();
-        ctx.fillStyle = '#3b82f6'; ctx.fillRect(-8, -28, 5, 18); ctx.fillRect(3, -28, 5, 18); // Bretelles
+        ctx.fillStyle = '#3b82f6'; ctx.fillRect(-8, -28, 5, 18); ctx.fillRect(3, -28, 5, 18); 
         
-        // Bras (avec un sécateur !)
+        // Bras 
         ctx.fillStyle = '#fca5a5'; 
         ctx.save(); ctx.translate(10, -20); ctx.rotate(walkAnim * Math.PI/180); 
         ctx.fillRect(-2, 0, 4, 12); 
-        ctx.fillStyle = '#64748b'; ctx.fillRect(-4, 10, 8, 4); // Sécateur
+        ctx.fillStyle = '#64748b'; ctx.fillRect(-4, 10, 8, 4); 
         ctx.restore();
 
         // Tête et Écharpe
         ctx.fillStyle = '#fca5a5'; ctx.beginPath(); ctx.arc(0, -38, 9, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(4, -40, 2, 0, Math.PI*2); ctx.fill(); // Oeil
+        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(4, -40, 2, 0, Math.PI*2); ctx.fill(); 
         ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(0, -40, 9, Math.PI, 0); ctx.fill(); 
-        ctx.fillRect(0, -42, 14, 4); // Casquette
+        ctx.fillRect(0, -42, 14, 4); 
         // Écharpe flottante
         ctx.fillStyle = '#ef4444'; 
         ctx.beginPath(); ctx.moveTo(-8, -30); ctx.lineTo(-18 - Math.abs(player.vx)*2, -25 + Math.sin(frameCount*0.2)*5); ctx.lineTo(-12, -20); ctx.fill();
@@ -1256,41 +1332,38 @@ function draw() {
         ctx.restore();
     }
 
-    // ENNEMIS (Graphismes Améliorés)
+    // ENNEMIS
     for(let e of enemies) {
         if(e.dead) continue;
         let dir = e.vx > 0 ? 1 : -1;
         if (e.type === 'snail') {
-            // Escargot avec coquille en spirale
-            ctx.fillStyle = '#fef08a'; ctx.fillRect(e.x, e.y + 16, e.w, 8); // Corps
-            ctx.fillStyle = '#ca8a04'; ctx.beginPath(); ctx.arc(e.x + 12, e.y + 12, 12, 0, Math.PI*2); ctx.fill(); // Coquille
+            ctx.fillStyle = '#fef08a'; ctx.fillRect(e.x, e.y + 16, e.w, 8); 
+            ctx.fillStyle = '#ca8a04'; ctx.beginPath(); ctx.arc(e.x + 12, e.y + 12, 12, 0, Math.PI*2); ctx.fill(); 
             ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 2; 
-            ctx.beginPath(); ctx.arc(e.x + 12, e.y + 12, 6, 0, Math.PI*1.5); ctx.stroke(); // Spirale
-            ctx.fillStyle = '#000'; ctx.fillRect(e.x + 12 + 8*dir, e.y + 18, 2, 2); // Oeil
-            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(e.x - 10*dir, e.y + 22, 10, 2); // Bave
+            ctx.beginPath(); ctx.arc(e.x + 12, e.y + 12, 6, 0, Math.PI*1.5); ctx.stroke(); 
+            ctx.fillStyle = '#000'; ctx.fillRect(e.x + 12 + 8*dir, e.y + 18, 2, 2); 
+            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(e.x - 10*dir, e.y + 22, 10, 2); 
         } 
         else if (e.type === 'bee') {
-            // Abeille avec ailes qui battent
             let wingBeat = Math.sin(frameCount) > 0 ? -10 : 10;
             ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.ellipse(e.x + 12, e.y + 12, 14, 10, 0, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#000'; ctx.fillRect(e.x + 8, e.y + 2, 4, 20); ctx.fillRect(e.x + 16, e.y + 2, 4, 20);
             ctx.fillStyle = 'rgba(255,255,255,0.8)'; 
-            ctx.beginPath(); ctx.ellipse(e.x + 12 - 5*dir, e.y + wingBeat, 6, 12, 0.5*dir, 0, Math.PI*2); ctx.fill(); // Aile
-            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(e.x + 12 + 10*dir, e.y + 10, 2, 0, Math.PI*2); ctx.fill(); // Oeil
-            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(e.x + 12 - 14*dir, e.y + 12); ctx.lineTo(e.x + 12 - 20*dir, e.y + 12); ctx.stroke(); // Dard
+            ctx.beginPath(); ctx.ellipse(e.x + 12 - 5*dir, e.y + wingBeat, 6, 12, 0.5*dir, 0, Math.PI*2); ctx.fill(); 
+            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(e.x + 12 + 10*dir, e.y + 10, 2, 0, Math.PI*2); ctx.fill(); 
+            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(e.x + 12 - 14*dir, e.y + 12); ctx.lineTo(e.x + 12 - 20*dir, e.y + 12); ctx.stroke(); 
         } 
         else if (e.type === 'frog') {
-            // Grenouille avec cuisses
             let jumpStretch = Math.abs(e.vy) > 1 ? 4 : 0;
             ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.ellipse(e.x + 12, e.y + 16 - jumpStretch, 14, 10 + jumpStretch, 0, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(e.x + 6 + 4*dir, e.y + 10 - jumpStretch, 6, 0, Math.PI*2); ctx.fill(); // Oeil
+            ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(e.x + 6 + 4*dir, e.y + 10 - jumpStretch, 6, 0, Math.PI*2); ctx.fill(); 
             ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(e.x + 6 + 6*dir, e.y + 10 - jumpStretch, 2, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = '#15803d'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(e.x+12, e.y+16); ctx.lineTo(e.x+12-8*dir, e.y+24+jumpStretch); ctx.stroke(); // Patte
+            ctx.strokeStyle = '#15803d'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(e.x+12, e.y+16); ctx.lineTo(e.x+12-8*dir, e.y+24+jumpStretch); ctx.stroke(); 
         }
         else if (e.type === 'mole') {
             if (e.timer > 120) {
                 ctx.fillStyle = '#451a03'; ctx.beginPath(); ctx.ellipse(e.x+12, e.y+12, 12, 16, 0, Math.PI, 0); ctx.fill(); 
-                ctx.fillStyle = '#fca5a5'; ctx.fillRect(e.x+8, e.y+4, 8, 4); // Nez rose
+                ctx.fillStyle = '#fca5a5'; ctx.fillRect(e.x+8, e.y+4, 8, 4); 
                 ctx.fillStyle = '#000'; ctx.fillRect(e.x+6, e.y+10, 2, 2); ctx.fillRect(e.x+16, e.y+10, 2, 2); 
             }
         }
@@ -1340,12 +1413,12 @@ function draw() {
         ctx.restore();
     }
 
-    // Voile atmospherique pour plus de profondeur.
-    let haze = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    // AUDIT UPDATE : Ajustement du brouillard (haze) pour l'axe Y
+    let haze = ctx.createLinearGradient(0, cameraY, 0, cameraY + canvas.height);
     haze.addColorStop(0, time === 'night' ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.04)');
     haze.addColorStop(1, time === 'night' ? 'rgba(2, 6, 23, 0.35)' : 'rgba(15, 23, 42, 0.12)');
     ctx.fillStyle = haze;
-    ctx.fillRect(cameraX, 0, canvas.width, canvas.height);
+    ctx.fillRect(cameraX, cameraY, canvas.width, canvas.height);
     ctx.restore(); 
 
     if (gameState === 'boss_intro') {
@@ -1356,12 +1429,13 @@ function draw() {
     ctx.textAlign = "center";
     for (let ft of floatingTexts) {
         ctx.font = `bold ${ft.size} 'Playfair Display', serif`; ctx.fillStyle = ft.color; ctx.globalAlpha = ft.life;
-        ctx.fillText(ft.text, ft.x - cameraX, ft.y); ctx.globalAlpha = 1.0;
+        // AUDIT UPDATE : Texts avec prise en compte du cameraY
+        ctx.fillText(ft.text, ft.x - cameraX, ft.y - cameraY); ctx.globalAlpha = 1.0;
     }
 
     if (activeDialog && gameState !== 'boss_intro') {
         let npc = activeDialog.npc;
-        let cx = (npc.x + npc.w/2) - cameraX; let cy = npc.y - 45;
+        let cx = (npc.x + npc.w/2) - cameraX; let cy = npc.y - 45 - cameraY;
         
         ctx.fillStyle = 'rgba(255,255,255,0.95)';
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(cx - 150, cy - 60, 300, 70, 8) : ctx.fillRect(cx - 150, cy - 60, 300, 70); ctx.fill();
@@ -1378,9 +1452,8 @@ function draw() {
         }
     }
 
-    // Effets de lumiere additionnels (halo joueur + glow chaud).
     const px = player.x + player.width / 2 - cameraX;
-    const py = player.y + player.height / 2;
+    const py = player.y + player.height / 2 - cameraY;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     let playerHalo = ctx.createRadialGradient(px, py, 8, px, py, 120);
@@ -1388,7 +1461,7 @@ function draw() {
     playerHalo.addColorStop(1, 'rgba(255, 251, 160, 0)');
     ctx.fillStyle = playerHalo;
     ctx.fillRect(px - 120, py - 120, 240, 240);
-    let skyBloom = ctx.createRadialGradient(canvas.width * 0.85, 90, 30, canvas.width * 0.85, 90, 240);
+    let skyBloom = ctx.createRadialGradient(canvas.width * 0.85, 90 - cameraY * 0.05, 30, canvas.width * 0.85, 90 - cameraY * 0.05, 240);
     skyBloom.addColorStop(0, time === 'night' ? 'rgba(226,232,240,0.28)' : 'rgba(254,240,138,0.26)');
     skyBloom.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = skyBloom;
@@ -1404,7 +1477,6 @@ function draw() {
         ctx.fillText(`OUTILS ${totalToolsCollected}`, 16, 84);
     }
 
-    // Vignette cinematique legere pour renforcer le contraste visuel.
     let vignette = ctx.createRadialGradient(
         canvas.width / 2,
         canvas.height / 2,
