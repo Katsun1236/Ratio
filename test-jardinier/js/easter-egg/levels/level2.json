@@ -1,0 +1,273 @@
+{
+    "name": "Les Terres Boueuses",
+    "time": "midday",
+    "ambience": "mudlands",
+    "mapX": 280,
+    "mapY": 290,
+    "width": 4500,
+    "goal": {
+        "x": 4300,
+        "y": 70,
+        "w": 120,
+        "h": 80
+    },
+    "checkpoints": [
+        {
+            "x": 1500,
+            "y": 90,
+            "w": 20,
+            "h": 60,
+            "active": false
+        },
+        {
+            "x": 3000,
+            "y": 90,
+            "w": 20,
+            "h": 60,
+            "active": false
+        }
+    ],
+    "platforms": [
+        {
+            "x": 0,
+            "y": 480,
+            "w": 300,
+            "h": 80,
+            "type": "normal"
+        },
+        {
+            "x": 300,
+            "y": 150,
+            "w": 50,
+            "h": 360,
+            "type": "normal"
+        },
+        {
+            "x": 550,
+            "y": 150,
+            "w": 50,
+            "h": 360,
+            "type": "normal"
+        },
+        {
+            "x": 550,
+            "y": 150,
+            "w": 1000,
+            "h": 60,
+            "type": "mud"
+        },
+        {
+            "x": 1550,
+            "y": 150,
+            "w": 1500,
+            "h": 60,
+            "type": "mud"
+        },
+        {
+            "x": 3050,
+            "y": 150,
+            "w": 1500,
+            "h": 60,
+            "type": "normal"
+        },
+        {
+            "x": 1300,
+            "y": 50,
+            "w": 100,
+            "h": 20,
+            "type": "normal"
+        },
+        {
+            "x": 2000,
+            "y": 50,
+            "w": 100,
+            "h": 20,
+            "type": "bouncy"
+        },
+        {
+            "x": 2600,
+            "y": 50,
+            "w": 100,
+            "h": 20,
+            "type": "normal"
+        },
+        {
+            "x": 3400,
+            "y": 40,
+            "w": 120,
+            "h": 20,
+            "type": "fragile",
+            "timer": 0,
+            "state": "idle"
+        }
+    ],
+    "water": [],
+    "windZones": [],
+    "buzzsaws": [
+        {
+            "x": 700,
+            "y": 110,
+            "size": 25,
+            "minX": 600,
+            "maxX": 1400,
+            "vx": 5
+        },
+        {
+            "x": 1700,
+            "y": 110,
+            "size": 25,
+            "minX": 1600,
+            "maxX": 2900,
+            "vx": 7
+        }
+    ],
+    "tasks": [
+        {
+            "x": 700,
+            "y": 130,
+            "w": 80,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        },
+        {
+            "x": 1300,
+            "y": 5,
+            "w": 50,
+            "h": 45,
+            "type": "hedge",
+            "done": false,
+            "name": "Taille"
+        },
+        {
+            "x": 2600,
+            "y": 5,
+            "w": 50,
+            "h": 45,
+            "type": "hedge",
+            "done": false,
+            "name": "Taille"
+        },
+        {
+            "x": 3440,
+            "y": -5,
+            "w": 50,
+            "h": 45,
+            "type": "hedge",
+            "done": false,
+            "name": "Taille"
+        }
+    ],
+    "npcs": [
+        {
+            "x": 150,
+            "y": 444,
+            "w": 20,
+            "h": 36,
+            "color": "#60a5fa",
+            "name": "M. Tulipe",
+            "dialogs": [
+                "Saute contre ce grand mur et maintiens la flèche pour Wall-Jump !",
+                "Attention à la boue en haut, il est impossible de freiner vite !"
+            ]
+        }
+    ],
+    "enemies": [
+        {
+            "x": 850,
+            "y": 150,
+            "w": 24,
+            "h": 24,
+            "type": "mole",
+            "vx": 0,
+            "vy": 0,
+            "baseY": 150,
+            "timer": 0,
+            "dead": false
+        },
+        {
+            "x": 1100,
+            "y": 126,
+            "w": 24,
+            "h": 24,
+            "type": "frog",
+            "vx": -1.5,
+            "vy": 0,
+            "baseY": 126,
+            "minX": 1000,
+            "maxX": 1250,
+            "dead": false
+        },
+        {
+            "x": 2400,
+            "y": 126,
+            "w": 24,
+            "h": 24,
+            "type": "snail",
+            "vx": 2,
+            "minX": 2300,
+            "maxX": 2800,
+            "dead": false
+        }
+    ],
+    "items": [
+        {
+            "x": 1340,
+            "y": -20,
+            "baseY": -20,
+            "w": 20,
+            "h": 20,
+            "type": "hp",
+            "collected": false
+        }
+    ],
+    "decorations": [
+        {
+            "type": "reed",
+            "x": 760,
+            "y": 110,
+            "h": 40
+        },
+        {
+            "type": "reed",
+            "x": 2100,
+            "y": 110,
+            "h": 36
+        },
+        {
+            "type": "wheelbarrow",
+            "x": 3160,
+            "y": 108
+        },
+        {
+            "type": "barrel",
+            "x": 3540,
+            "y": 112
+        },
+        {
+            "type": "lantern",
+            "x": 4180,
+            "y": 70
+        }
+    ],
+    "boss": {
+        "x": 3700,
+        "startX": 3700,
+        "y": 50,
+        "w": 100,
+        "h": 100,
+        "hp": 8,
+        "maxHp": 8,
+        "type": "toad",
+        "state": "idle",
+        "timer": 0,
+        "dead": false,
+        "name": "CRAPAUD-BUFFLE",
+        "reward": "dash",
+        "arenaMin": 3400,
+        "arenaMax": 4100,
+        "hasDoneIntro": false,
+        "isActive": false
+    }
+}

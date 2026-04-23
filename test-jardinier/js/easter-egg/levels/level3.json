@@ -1,0 +1,274 @@
+{
+    "name": "Les Hauts Vents",
+    "time": "sunset",
+    "ambience": "windgarden",
+    "mapX": 430,
+    "mapY": 220,
+    "width": 5000,
+    "goal": {
+        "x": 4800,
+        "y": 400,
+        "w": 120,
+        "h": 80
+    },
+    "checkpoints": [
+        {
+            "x": 1600,
+            "y": 420,
+            "w": 20,
+            "h": 60,
+            "active": false
+        },
+        {
+            "x": 3000,
+            "y": 290,
+            "w": 20,
+            "h": 60,
+            "active": false
+        }
+    ],
+    "platforms": [
+        {
+            "x": 0,
+            "y": 480,
+            "w": 300,
+            "h": 80,
+            "type": "normal"
+        },
+        {
+            "x": 900,
+            "y": 480,
+            "w": 4100,
+            "h": 80,
+            "type": "normal"
+        },
+        {
+            "x": 1300,
+            "y": 300,
+            "w": 100,
+            "h": 20,
+            "type": "ghost_plat",
+            "timer": 0,
+            "active": true
+        },
+        {
+            "x": 1700,
+            "y": 250,
+            "w": 100,
+            "h": 20,
+            "type": "moving",
+            "minX": 1700,
+            "maxX": 2100,
+            "vx": 3
+        },
+        {
+            "x": 2300,
+            "y": 250,
+            "w": 100,
+            "h": 20,
+            "type": "bouncy"
+        },
+        {
+            "x": 2800,
+            "y": 350,
+            "w": 100,
+            "h": 20,
+            "type": "normal"
+        },
+        {
+            "x": 3400,
+            "y": 250,
+            "w": 100,
+            "h": 20,
+            "type": "fragile",
+            "timer": 0,
+            "state": "idle"
+        },
+        {
+            "x": 3920,
+            "y": 300,
+            "w": 120,
+            "h": 20,
+            "type": "moving",
+            "minX": 3920,
+            "maxX": 4300,
+            "vx": 2.4
+        }
+    ],
+    "water": [
+        {
+            "x": 300,
+            "y": 500,
+            "w": 600,
+            "h": 60
+        },
+        {
+            "x": 2200,
+            "y": 500,
+            "w": 400,
+            "h": 60
+        }
+    ],
+    "windZones": [
+        {
+            "x": 400,
+            "y": 100,
+            "w": 400,
+            "h": 480
+        },
+        {
+            "x": 3300,
+            "y": 50,
+            "w": 300,
+            "h": 480
+        }
+    ],
+    "buzzsaws": [],
+    "tasks": [
+        {
+            "x": 1000,
+            "y": 435,
+            "w": 50,
+            "h": 45,
+            "type": "hedge",
+            "done": false,
+            "name": "Taille"
+        },
+        {
+            "x": 1320,
+            "y": 280,
+            "w": 60,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        },
+        {
+            "x": 2820,
+            "y": 230,
+            "w": 40,
+            "h": 20,
+            "type": "branch",
+            "done": false,
+            "trunkX": 2850,
+            "trunkY": 350,
+            "name": "Élagage"
+        },
+        {
+            "x": 3100,
+            "y": 460,
+            "w": 80,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        }
+    ],
+    "npcs": [
+        {
+            "x": 150,
+            "y": 444,
+            "w": 20,
+            "h": 36,
+            "color": "#fcd34d",
+            "name": "L'Apprenti",
+            "dialogs": [
+                "Chef, j'ai laissé le Souffleur à feuilles allumé dans la crevasse !",
+                "Sautez dans le vent, ça va vous porter. Puis utilisez le Sécateur-Dash (MAJ) !"
+            ]
+        }
+    ],
+    "enemies": [
+        {
+            "x": 1100,
+            "y": 456,
+            "w": 24,
+            "h": 24,
+            "type": "snail",
+            "vx": 1.5,
+            "minX": 950,
+            "maxX": 1250,
+            "dead": false
+        },
+        {
+            "x": 1800,
+            "y": 150,
+            "w": 24,
+            "h": 24,
+            "type": "bee",
+            "vx": 2,
+            "baseY": 150,
+            "minX": 1700,
+            "maxX": 2200,
+            "dead": false
+        },
+        {
+            "x": 2500,
+            "y": 480,
+            "w": 24,
+            "h": 24,
+            "type": "mole",
+            "vx": 0,
+            "vy": 0,
+            "baseY": 480,
+            "timer": 0,
+            "dead": false
+        },
+        {
+            "x": 2600,
+            "y": 200,
+            "w": 24,
+            "h": 24,
+            "type": "bee",
+            "vx": -2.5,
+            "baseY": 200,
+            "minX": 2400,
+            "maxX": 2900,
+            "dead": false
+        }
+    ],
+    "items": [
+        {
+            "x": 2340,
+            "y": 100,
+            "baseY": 100,
+            "w": 20,
+            "h": 20,
+            "type": "hp",
+            "collected": false
+        }
+    ],
+    "decorations": [
+        {
+            "type": "windmill",
+            "x": 520,
+            "y": 340,
+            "h": 140
+        },
+        {
+            "type": "flowerPatch",
+            "x": 1040,
+            "y": 464,
+            "w": 70
+        },
+        {
+            "type": "treeDecor",
+            "x": 2120,
+            "y": 380,
+            "size": 56
+        },
+        {
+            "type": "kitePole",
+            "x": 3180,
+            "y": 330
+        },
+        {
+            "type": "arch",
+            "x": 4680,
+            "y": 420,
+            "w": 90,
+            "h": 60
+        }
+    ],
+    "boss": null
+}

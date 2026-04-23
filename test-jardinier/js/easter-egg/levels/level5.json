@@ -1,0 +1,245 @@
+{
+    "name": "Le Marais des Couronnes",
+    "time": "night",
+    "ambience": "swamp",
+    "mapX": 720,
+    "mapY": 190,
+    "width": 4800,
+    "goal": {
+        "x": 4580,
+        "y": 50,
+        "w": 120,
+        "h": 80
+    },
+    "checkpoints": [
+        {
+            "x": 1500,
+            "y": 70,
+            "w": 20,
+            "h": 60,
+            "active": false
+        },
+        {
+            "x": 3000,
+            "y": 70,
+            "w": 20,
+            "h": 60,
+            "active": false
+        }
+    ],
+    "platforms": [
+        {
+            "x": 0,
+            "y": 480,
+            "w": 350,
+            "h": 80,
+            "type": "normal"
+        },
+        {
+            "x": 350,
+            "y": 130,
+            "w": 900,
+            "h": 70,
+            "type": "mud"
+        },
+        {
+            "x": 1250,
+            "y": 130,
+            "w": 60,
+            "h": 380,
+            "type": "normal"
+        },
+        {
+            "x": 1500,
+            "y": 130,
+            "w": 1100,
+            "h": 70,
+            "type": "normal"
+        },
+        {
+            "x": 2620,
+            "y": 80,
+            "w": 120,
+            "h": 20,
+            "type": "moving",
+            "minX": 2620,
+            "maxX": 3100,
+            "vx": 3
+        },
+        {
+            "x": 3200,
+            "y": 130,
+            "w": 1600,
+            "h": 70,
+            "type": "mud"
+        },
+        {
+            "x": 3720,
+            "y": 40,
+            "w": 120,
+            "h": 20,
+            "type": "bouncy"
+        }
+    ],
+    "water": [
+        {
+            "x": 2600,
+            "y": 160,
+            "w": 520,
+            "h": 380
+        }
+    ],
+    "windZones": [],
+    "buzzsaws": [
+        {
+            "x": 2050,
+            "y": 90,
+            "size": 25,
+            "minX": 1800,
+            "maxX": 2550,
+            "vx": 5
+        }
+    ],
+    "tasks": [
+        {
+            "x": 650,
+            "y": 110,
+            "w": 80,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        },
+        {
+            "x": 1900,
+            "y": 85,
+            "w": 50,
+            "h": 45,
+            "type": "hedge",
+            "done": false,
+            "name": "Taille"
+        },
+        {
+            "x": 3340,
+            "y": 110,
+            "w": 80,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        }
+    ],
+    "npcs": [
+        {
+            "x": 140,
+            "y": 444,
+            "w": 20,
+            "h": 36,
+            "color": "#c4b5fd",
+            "name": "Noctis",
+            "dialogs": [
+                "Ici, la boue avale ton inertie.",
+                "Tu dois dompter le marais pour atteindre le portail final."
+            ]
+        }
+    ],
+    "enemies": [
+        {
+            "x": 950,
+            "y": 106,
+            "w": 24,
+            "h": 24,
+            "type": "frog",
+            "vx": -2,
+            "vy": 0,
+            "baseY": 106,
+            "minX": 700,
+            "maxX": 1220,
+            "dead": false
+        },
+        {
+            "x": 2150,
+            "y": 106,
+            "w": 24,
+            "h": 24,
+            "type": "frog",
+            "vx": 2,
+            "vy": 0,
+            "baseY": 106,
+            "minX": 1600,
+            "maxX": 2500,
+            "dead": false
+        },
+        {
+            "x": 3550,
+            "y": 106,
+            "w": 24,
+            "h": 24,
+            "type": "snail",
+            "vx": -2,
+            "minX": 3300,
+            "maxX": 4000,
+            "dead": false
+        }
+    ],
+    "items": [
+        {
+            "x": 3760,
+            "y": -20,
+            "baseY": -20,
+            "w": 20,
+            "h": 20,
+            "type": "hp",
+            "collected": false
+        }
+    ],
+    "decorations": [
+        {
+            "type": "mushroom",
+            "x": 780,
+            "y": 108,
+            "size": 22
+        },
+        {
+            "type": "reed",
+            "x": 1740,
+            "y": 112,
+            "h": 40
+        },
+        {
+            "type": "reed",
+            "x": 2740,
+            "y": 150,
+            "h": 50
+        },
+        {
+            "type": "totem",
+            "x": 3460,
+            "y": 106
+        },
+        {
+            "type": "lantern",
+            "x": 4440,
+            "y": 46
+        }
+    ],
+    "boss": {
+        "x": 4040,
+        "startX": 4040,
+        "y": 10,
+        "w": 110,
+        "h": 120,
+        "hp": 10,
+        "maxHp": 10,
+        "type": "toad",
+        "state": "idle",
+        "timer": 0,
+        "dead": false,
+        "name": "CRAPAUD ROYAL",
+        "reward": "dash",
+        "arenaMin": 3600,
+        "arenaMax": 4550,
+        "hasDoneIntro": false,
+        "isActive": false
+    }
+}

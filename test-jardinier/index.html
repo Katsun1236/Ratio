@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Super Jardinier</title>
+    
+    <!-- Tailwind pour le design de l'interface par dessus le Canvas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome pour la petite croix de fermeture -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Configuration de tes couleurs personnalisées (botanic) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        botanic: '#4ade80',
+                        'botanic-dark': '#166534',
+                        'botanic-light': '#86efac',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-stone-200 flex items-center justify-center h-screen overflow-hidden">
+
+    <!-- LE BOUTON SECRET (Clique 7 fois dessus !) -->
+    <button id="easter-egg-leaf" class="px-8 py-4 bg-green-600 text-white rounded-full hover:bg-green-700 transition shadow-xl font-bold text-xl cursor-pointer">
+        🌿 Clique 7 fois ici pour tester !
+    </button>
+
+    <!-- IMPORT DU JEU (L'attribut type="module" est OBLIGATOIRE) -->
+    <script type="module" src="./js/easter-egg/main.js"></script>
+
+</body>
+</html>

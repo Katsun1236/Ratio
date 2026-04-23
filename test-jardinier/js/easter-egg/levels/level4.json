@@ -1,0 +1,277 @@
+{
+    "name": "Les Ruines Moussues",
+    "time": "afternoon",
+    "ambience": "ruins",
+    "mapX": 580,
+    "mapY": 260,
+    "width": 5400,
+    "goal": {
+        "x": 5150,
+        "y": 400,
+        "w": 120,
+        "h": 80
+    },
+    "checkpoints": [
+        {
+            "x": 1800,
+            "y": 420,
+            "w": 20,
+            "h": 60,
+            "active": false
+        },
+        {
+            "x": 3700,
+            "y": 260,
+            "w": 20,
+            "h": 60,
+            "active": false
+        }
+    ],
+    "platforms": [
+        {
+            "x": 0,
+            "y": 480,
+            "w": 1200,
+            "h": 80,
+            "type": "normal"
+        },
+        {
+            "x": 1300,
+            "y": 390,
+            "w": 120,
+            "h": 20,
+            "type": "fragile",
+            "timer": 0,
+            "state": "idle"
+        },
+        {
+            "x": 1550,
+            "y": 340,
+            "w": 120,
+            "h": 20,
+            "type": "ghost_plat",
+            "timer": 20,
+            "active": true
+        },
+        {
+            "x": 1800,
+            "y": 290,
+            "w": 120,
+            "h": 20,
+            "type": "moving",
+            "minX": 1800,
+            "maxX": 2200,
+            "vx": 2.8
+        },
+        {
+            "x": 2300,
+            "y": 240,
+            "w": 120,
+            "h": 20,
+            "type": "bouncy"
+        },
+        {
+            "x": 2800,
+            "y": 300,
+            "w": 140,
+            "h": 20,
+            "type": "normal"
+        },
+        {
+            "x": 3200,
+            "y": 260,
+            "w": 140,
+            "h": 20,
+            "type": "mud"
+        },
+        {
+            "x": 3500,
+            "y": 320,
+            "w": 1800,
+            "h": 80,
+            "type": "normal"
+        },
+        {
+            "x": 4100,
+            "y": 220,
+            "w": 120,
+            "h": 20,
+            "type": "ghost_plat",
+            "timer": 60,
+            "active": false
+        }
+    ],
+    "water": [
+        {
+            "x": 1200,
+            "y": 500,
+            "w": 250,
+            "h": 60
+        },
+        {
+            "x": 2550,
+            "y": 500,
+            "w": 500,
+            "h": 60
+        }
+    ],
+    "windZones": [
+        {
+            "x": 4350,
+            "y": 80,
+            "w": 230,
+            "h": 480
+        }
+    ],
+    "buzzsaws": [
+        {
+            "x": 2050,
+            "y": 250,
+            "size": 24,
+            "minX": 1950,
+            "maxX": 2450,
+            "vx": 4
+        },
+        {
+            "x": 3950,
+            "y": 435,
+            "size": 28,
+            "minX": 3750,
+            "maxX": 4700,
+            "vx": 6
+        }
+    ],
+    "tasks": [
+        {
+            "x": 600,
+            "y": 460,
+            "w": 80,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        },
+        {
+            "x": 2320,
+            "y": 195,
+            "w": 50,
+            "h": 45,
+            "type": "hedge",
+            "done": false,
+            "name": "Taille"
+        },
+        {
+            "x": 2850,
+            "y": 180,
+            "w": 40,
+            "h": 20,
+            "type": "branch",
+            "done": false,
+            "trunkX": 2880,
+            "trunkY": 300,
+            "name": "Élagage"
+        },
+        {
+            "x": 4450,
+            "y": 240,
+            "w": 60,
+            "h": 20,
+            "type": "grass",
+            "done": false,
+            "name": "Tonte"
+        }
+    ],
+    "npcs": [
+        {
+            "x": 220,
+            "y": 444,
+            "w": 20,
+            "h": 36,
+            "color": "#86efac",
+            "name": "Garde Forestier",
+            "dialogs": [
+                "Les ruines sont piégeuses, garde ton dash pour les sauts ratés.",
+                "Le vent final te propulse vers la sortie !"
+            ]
+        }
+    ],
+    "enemies": [
+        {
+            "x": 1450,
+            "y": 456,
+            "w": 24,
+            "h": 24,
+            "type": "snail",
+            "vx": 2,
+            "minX": 1300,
+            "maxX": 1720,
+            "dead": false
+        },
+        {
+            "x": 2440,
+            "y": 180,
+            "w": 24,
+            "h": 24,
+            "type": "bee",
+            "vx": 2.4,
+            "baseY": 180,
+            "minX": 2350,
+            "maxX": 2900,
+            "dead": false
+        },
+        {
+            "x": 4300,
+            "y": 480,
+            "w": 24,
+            "h": 24,
+            "type": "mole",
+            "vx": 0,
+            "vy": 0,
+            "baseY": 480,
+            "timer": 0,
+            "dead": false
+        }
+    ],
+    "items": [
+        {
+            "x": 4140,
+            "y": 170,
+            "baseY": 170,
+            "w": 20,
+            "h": 20,
+            "type": "hp",
+            "collected": false
+        }
+    ],
+    "decorations": [
+        {
+            "type": "ruinPillar",
+            "x": 1180,
+            "y": 360,
+            "h": 120
+        },
+        {
+            "type": "ruinPillar",
+            "x": 2460,
+            "y": 320,
+            "h": 160
+        },
+        {
+            "type": "vineWall",
+            "x": 3600,
+            "y": 300,
+            "h": 180
+        },
+        {
+            "type": "lantern",
+            "x": 4380,
+            "y": 180
+        },
+        {
+            "type": "bench",
+            "x": 4920,
+            "y": 458
+        }
+    ],
+    "boss": null
+}
