@@ -1,15 +1,17 @@
 // js/easter-egg/input.js
-// Écoute des touches et export de l'objet "keys"
 
 export const keys = { 
     left: false, right: false, jump: false, interact: false, dash: false,
-    jumpJustPressed: false, interactJustPressed: false, dashJustPressed: false
+    editor: false, // Ajout pour l'éditeur
+    jumpJustPressed: false, interactJustPressed: false, dashJustPressed: false,
+    editorJustPressed: false // Flag pour détecter l'appui unique
 };
 
 export function resetJustPressedFlags() {
     keys.jumpJustPressed = false;
     keys.interactJustPressed = false;
     keys.dashJustPressed = false;
+    keys.editorJustPressed = false; // Reset le flag de l'éditeur
 }
 
 export function initInputs(gameActiveGetter) {
@@ -17,7 +19,8 @@ export function initInputs(gameActiveGetter) {
         if (!gameActiveGetter()) return;
         const k = e.key.toLowerCase();
         
-        if(["arrowup","arrowdown","arrowleft","arrowright"," ","e","shift"].includes(k) || ["z","q","s","d"].includes(k)) e.preventDefault();
+        // Empêcher le scroll pour les touches de jeu et T
+        if(["arrowup","arrowdown","arrowleft","arrowright"," ","e","shift","t"].includes(k) || ["z","q","s","d"].includes(k)) e.preventDefault();
         
         if (k === 'arrowleft' || k === 'q') keys.left = true;
         if (k === 'arrowright' || k === 'd') keys.right = true;
@@ -33,6 +36,11 @@ export function initInputs(gameActiveGetter) {
             if (!keys.dash) keys.dashJustPressed = true;
             keys.dash = true;
         }
+        // Détection de la touche T
+        if (k === 't') {
+            if (!keys.editor) keys.editorJustPressed = true;
+            keys.editor = true;
+        }
     });
 
     document.addEventListener('keyup', (e) => {
@@ -42,5 +50,6 @@ export function initInputs(gameActiveGetter) {
         if (k === 'arrowup' || k === 'z' || k === ' ') keys.jump = false;
         if (k === 'e' || e.key === 'enter') keys.interact = false;
         if (k === 'shift') keys.dash = false;
+        if (k === 't') keys.editor = false;
     });
 }

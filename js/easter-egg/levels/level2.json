@@ -21,7 +21,7 @@
         { "x": 2600, "y": 300, "w": 100, "h": 20, "type": "fragile", "timer": 0, "state": "idle" },
         { "x": 2800, "y": 800, "w": 200, "h": 20, "type": "bouncy" },
         { "x": 3000, "y": 150, "w": 800, "h": 2000, "type": "normal" },
-        { "x": 4300, "y": 350, "w": 150, "h": 20, "type": "moving", "minX": 4300, "maxX": 4700, "vx": 3.5 },
+        { "x": 4100, "y": 350, "w": 150, "h": 20, "type": "moving", "minX": 4000, "maxX": 4700, "vx": 3.5 },
         { "x": 4900, "y": 150, "w": 400, "h": 2000, "type": "normal" },
         { "x": 5500, "y": 480, "w": 2000, "h": 2000, "type": "normal" },
         { "x": 5780, "y": 120, "w": 50, "h": 360, "type": "normal" },
@@ -38,8 +38,8 @@
     ],
     "switches": [
         { "x": 2880, "y": 550, "id": "gate2", "active": false, "type": "button" },
-        { "x": 6500, "y": 140, "id": "boss_drop", "active": false, "type": "button" },
-        { "x": 5800, "y": 140, "id": "boss_drop", "active": false, "type": "button" }
+        { "x": 6600, "y": 100, "id": "boss_drop", "active": false, "type": "button" },
+        { "x": 5700, "y": 100, "id": "boss_drop", "active": false, "type": "button" }
     ],
     "gates": [
         { "x": 3000, "y": -1000, "w": 40, "h": 1150, "switchId": "gate2", "open": false }

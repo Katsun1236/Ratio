@@ -36,6 +36,12 @@ const levelToolsCollected = Array.from({ length: 6 }, () => 0);
 let totalToolsCollected = 0;
 let mapAvatarX = 140; let mapAvatarY = 360; let mapAvatarTargetX = 140; let mapAvatarTargetY = 360;
 let pendingLevelIdx = 0; let levelEnterTimer = 0;
+let editorOpen = false;
+let editorInstance = null;
+
+export function setEditorInstance(editor) {
+    editorInstance = editor;
+}
 
 export function initEngine() {
     gameContainer = document.getElementById('easter-egg-game-container'); closeBtn = document.getElementById('close-game-btn');
@@ -275,6 +281,36 @@ function showGameOver(title, desc, buttonText = "Rejouer", returnToMap = false) 
 
 function update() {
     if (!gameActive) return;
+
+    // --- EDITOR TOGGLE ---
+    if (keys.editorJustPressed) {
+        const editorPanel = document.getElementById('editor-panel');
+        if (editorPanel && gameState === 'playing') {
+            editorOpen = !editorOpen;
+            
+            // Mettre à jour l'état de l'éditeur
+            if (editorInstance) {
+                editorInstance.setEditMode(editorOpen, levelData);
+            }
+            
+            if (editorOpen) {
+                editorPanel.classList.remove('hidden');
+                editorPanel.style.opacity = '0';
+                editorPanel.style.transform = 'translateX(-20px) scale(0.95)';
+                setTimeout(() => {
+                    editorPanel.style.transition = 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)';
+                    editorPanel.style.opacity = '1';
+                    editorPanel.style.transform = 'translateX(0) scale(1)';
+                }, 10);
+            } else {
+                editorPanel.style.transition = 'all 0.2s ease-out';
+                editorPanel.style.opacity = '0';
+                editorPanel.style.transform = 'translateX(-20px) scale(0.95)';
+                setTimeout(() => editorPanel.classList.add('hidden'), 200);
+            }
+        }
+    }
+
     if (hitStopFrames > 0) { hitStopFrames--; draw(); gameLoop = requestAnimationFrame(update); return; }
     frameCount++;
 
@@ -827,6 +863,7 @@ function update() {
     keys.jumpJustPressed = false;
     keys.dashJustPressed = false;
     keys.interactJustPressed = false;
+    keys.editorJustPressed = false;
 }
 
 function drawAmbientOverlay(time, ambience) {
