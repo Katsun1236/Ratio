@@ -3,6 +3,7 @@
 // NOUVELLE IA BOSS : Vrais patterns d'attaque continus.
 // AUDIT UPDATE : Coyote Time, Jump Buffering, Magnétisme, Saut variable et Caméra Axe Y.
 // PATCH : Bouclier anti-NaN et sanitation complète des JSON pour éviter les crashs.
+// ULTIMATE FIX : Suppression du "return;" assassin qui figeait le jeu sur la World Map !
 
 import { groundY, clouds, stars, levels } from './config.js';
 import { keys } from './input.js';
@@ -15,14 +16,11 @@ let gameLoop;
 let gameActive = false;
 export const isGameActive = () => gameActive;
 
-// AUDIT UPDATE : Ajout de cameraY
 let currentLevelIdx = 0; let cameraX = 0; let cameraY = 0; let frameCount = 0; let screenShake = 0;
 let hitStopFrames = 0; let gameState = 'playing'; let cinematicTimer = 0; let cinematicState = '';
 
-// AUDIT UPDATE : Physique légèrement plus "lourde" et nerveuse
 const gravity = 0.65; const defaultFriction = 0.8; const mudFriction = 0.95; 
 
-// AUDIT UPDATE : Timers pour le Game Feel (Coyote Time & Jump Buffer)
 let coyoteFrames = 0;
 let jumpBufferFrames = 0;
 
@@ -67,13 +65,12 @@ function closeGameUI() {
 }
 
 function updateProgressAbilities() {
-    // Progression de type metroidvania liee a la campagne.
     player.hasWallJump = maxUnlockedLevel >= 1;
     player.hasDash = maxUnlockedLevel >= 2;
 }
 
 function isLevelUnlocked(idx) {
-    if (idx === 0) return true; // Le premier niveau est toujours accessible
+    if (idx === 0) return true; 
     const starRequirement = idx <= 2 ? 0 : (idx - 2) * 3;
     return idx <= maxUnlockedLevel && totalStarsCollected >= starRequirement;
 }
@@ -129,7 +126,6 @@ function updateBossUI(boss) {
 function loadLevel(idx) {
     currentLevelIdx = idx; 
     
-    // FIX CRASH : Protection si le niveau n'existe pas dans le tableau
     if (!levels[idx]) {
         console.warn("Niveau introuvable ! Retour à la carte.");
         return showWorldMap();
@@ -137,7 +133,6 @@ function loadLevel(idx) {
     
     levelData = JSON.parse(JSON.stringify(levels[idx])); 
     
-    // FIX BUG CRASH : On s'assure que le niveau a une largeur par défaut
     levelData.width = levelData.width || 3000;
     
     levelData.platforms = levelData.platforms || [];
@@ -152,8 +147,6 @@ function loadLevel(idx) {
     levelData.buzzsaws = levelData.buzzsaws || [];
     levelData.chests = levelData.chests || []; 
     
-    // FIX BUG CRASH : BOUCLIER ANTI-NaN MASSIF
-    // Si une propriété vitale est manquante dans le JSON, on la remplace ici pour éviter que le jeu ne crashe.
     levelData.platforms.forEach(p => {
         if (p.type === 'moving') { p.vx = p.vx || 0; p.minX = p.minX || p.x; p.maxX = p.maxX || (p.x + 200); }
         if (p.type === 'ghost_plat' || p.type === 'fragile') p.timer = p.timer || 0;
@@ -178,8 +171,8 @@ function loadLevel(idx) {
     player.facingRight = true; player.hp = player.maxHp; player.invincibleTimer = 0; player.jumps = 0;
     player.isDashing = false; player.canDash = true; player.wallJumpTimer = 0;
     
-    cameraX = 0; cameraY = 0; // Reset caméras
-    coyoteFrames = 0; jumpBufferFrames = 0; // Reset timers
+    cameraX = 0; cameraY = 0; 
+    coyoteFrames = 0; jumpBufferFrames = 0; 
 
     enemies = levelData.enemies; items = levelData.items; npcs = levelData.npcs; 
     buzzsaws = levelData.buzzsaws; chests = levelData.chests; 
@@ -198,7 +191,6 @@ function loadLevel(idx) {
         { x: Math.max(320, Math.floor(levelData.width * 0.78)), y: Math.max(90, groundY - 140), collected: false, kind: 'shovel' }
     ]);
     
-    // Protection anti-NaN des étoiles et outils
     levelData.stars.forEach(s => s.baseY = s.baseY !== undefined ? s.baseY : s.y);
     levelData.tools.forEach(t => t.baseY = t.baseY !== undefined ? t.baseY : t.y);
 
@@ -212,7 +204,7 @@ function loadLevel(idx) {
     if (levelData.boss) {
         levelData.boss.phase = 1; levelData.boss.state = 'idle'; levelData.boss.shield = false;
         levelData.boss.invincible = false; levelData.boss.hasDoneIntro = false; levelData.boss.isActive = false; 
-        levelData.boss.startX = levelData.boss.x; // FIX : Mémoriser le X pour le restart
+        levelData.boss.startX = levelData.boss.x; 
     }
     
     document.getElementById('game-ui-level').innerText = "NIVEAU " + (idx + 1) + " - " + levelData.name;
@@ -240,10 +232,10 @@ function checkCollision(r1, r2) { let w1 = r1.w||r1.width; let h1 = r1.h||r1.hei
 function applyDamage(desc, knockbackX = 0, knockbackY = -6) {
     if (player.invincibleTimer > 0) return false;
     player.hp--;
-    player.invincibleTimer = 120; // 2 secondes a 60 FPS
+    player.invincibleTimer = 120; 
     player.vx = knockbackX;
     player.vy = knockbackY;
-    hitStopFrames = 12; // Grosse pause à l'impact
+    hitStopFrames = 12; 
     screenShake = 15;
     spawnParticles(player.x, player.y, '#ef4444', 14);
     spawnText(player.x, player.y - 20, "-1 PV", '#ef4444', '24px');
@@ -318,11 +310,13 @@ function update() {
             keys.interactJustPressed = false;
             keys.jumpJustPressed = false;
             startSelectedLevel();
+            // ICI ÉTAIT LE BUG ! Il n'y a plus de "return;" pour laisser la boucle d'animation continuer !
+        } else {
+            // Si on ne lance pas de niveau, on dessine et on boucle
+            draw();
+            gameLoop = requestAnimationFrame(update);
             return;
         }
-        draw();
-        gameLoop = requestAnimationFrame(update);
-        return;
     }
 
     if (gameState === 'level_enter') {
@@ -336,20 +330,18 @@ function update() {
         return;
     }
 
-    // Gestion des timers de tolérance pour les contrôles
     if (player.grounded) {
-        coyoteFrames = 6; // 6 frames de grâce après avoir quitté le bord
+        coyoteFrames = 6; 
     } else {
         if (coyoteFrames > 0) coyoteFrames--;
     }
 
     if (keys.jumpJustPressed) {
-        jumpBufferFrames = 6; // Enregistre l'input pendant 6 frames
+        jumpBufferFrames = 6; 
     } else {
         if (jumpBufferFrames > 0) jumpBufferFrames--;
     }
 
-    // GESTION PLATEFORMES FANTOMES & SCIES
     for (let p of levelData.platforms) {
         if (p.type === 'ghost_plat') {
             p.timer++;
@@ -380,7 +372,6 @@ function update() {
         cinematicTimer++;
         if (cinematicState === 'pan') {
             let targetCamX = levelData.boss.x - canvas.width/2 + levelData.boss.w/2; cameraX += (targetCamX - cameraX) * 0.05;
-            // On centre aussi l'axe Y sur le boss
             let targetCamY = levelData.boss.y - canvas.height/2 + levelData.boss.h/2; cameraY += (targetCamY - cameraY) * 0.05;
             if (cinematicTimer > 60) { cinematicState = 'roar'; cinematicTimer = 0; }
         } else if (cinematicState === 'roar') {
@@ -438,7 +429,7 @@ function update() {
         player.isDashing = true; player.dashTimer = 12; player.canDash = false;
         player.dashDir = player.facingRight ? 1 : -1; player.vy = 0; player.wallJumpTimer = 0;
         playSound('dash'); spawnParticles(player.x, player.y+10, '#3b82f6', 15);
-        screenShake = 3; // Petit kick visuel au dash
+        screenShake = 3; 
     }
     keys.dashJustPressed = false;
 
@@ -468,7 +459,6 @@ function update() {
 
     player.x += player.vx;
     
-    // FIX BUG CRASH : Sécurité ultime anti-NaN pour éviter que le joueur disparaisse
     if (isNaN(player.x)) player.x = player.spawnX;
     if (isNaN(player.y)) player.y = player.spawnY;
     if (isNaN(player.vx)) player.vx = 0;
@@ -495,7 +485,6 @@ function update() {
 
     if (!player.isDashing) { 
         player.vy += gravity; 
-        // AUDIT UPDATE : Hauteur de saut variable
         if (!keys.jump && player.vy < -2 && player.wallJumpTimer === 0) {
             player.vy *= 0.85; 
         }
@@ -504,22 +493,21 @@ function update() {
 
     let isWallSliding = false;
     if (player.hasWallJump && !player.grounded && player.vy > 0 && touchingWallDir !== 0 && !player.isDashing) {
-        isWallSliding = true; player.vy = 2.5; player.canDash = true; player.jumps = 1; // Glisse contrôlée
+        isWallSliding = true; player.vy = 2.5; player.canDash = true; player.jumps = 1; 
         if (frameCount % 4 === 0) spawnParticles(player.x + (touchingWallDir===1?player.width:0), player.y + 10, '#d4d4d8', 3);
     }
 
-    // Utilisation du Jump Buffer et Coyote Time
     if (jumpBufferFrames > 0 && !player.isDashing) {
         if (isWallSliding || (touchingWallDir !== 0 && !player.grounded)) {
             playSound('jump'); player.vy = player.jumpPower * 0.85; player.vx = touchingWallDir * -13; 
             player.facingRight = (touchingWallDir === -1); player.jumps = 1; player.wallJumpTimer = 12; 
             player.squash = 0.7; player.stretch = 1.3; spawnParticles(player.x + (touchingWallDir===1?player.width:0), player.y + 16, '#d4d4d8', 12);
             jumpBufferFrames = 0; coyoteFrames = 0;
-        } else if (coyoteFrames > 0) { // On est sur le sol ou on vient de le quitter (Coyote Time)
+        } else if (coyoteFrames > 0) { 
             playSound('jump'); player.vy = player.jumpPower; player.grounded = false; player.jumps = 1;
             player.squash = 0.6; player.stretch = 1.4; spawnParticles(player.x + 12, player.y + 32, '#d4d4d8', 8);
             jumpBufferFrames = 0; coyoteFrames = 0;
-        } else if (player.jumps === 1) { // Double saut
+        } else if (player.jumps === 1) { 
             playSound('jump'); player.vy = player.jumpPower * 0.9; player.jumps = 2;
             player.squash = 0.7; player.stretch = 1.3; spawnParticles(player.x + 12, player.y + 32, '#818cf8', 15);
             jumpBufferFrames = 0;
@@ -536,12 +524,12 @@ function update() {
             if (player.vy > 0) {
                 player.y = p.y - player.height; player.vy = 0; player.grounded = true;
                 player.jumps = 0; player.canDash = true; player.wallJumpTimer = 0; 
-                coyoteFrames = 6; // Recharge coyote timer à l'atterrissage
+                coyoteFrames = 6; 
                 
                 if (p.type === 'bouncy') {
                     playSound('bounce'); player.vy = -18; player.grounded = false; player.jumps = 1;
                     player.squash = 0.5; player.stretch = 1.5; spawnParticles(player.x + 12, player.y + 32, '#ef4444', 15);
-                    coyoteFrames = 0; // Pas de coyote sur un bumper
+                    coyoteFrames = 0; 
                 }
                 if (p.type === 'fragile') {
                     if(p.state === 'idle') p.state = 'shaking'; p.timer++; if(p.timer > 25) p.state = 'falling';
@@ -554,7 +542,6 @@ function update() {
 
     if (!wasGrounded && player.grounded) { 
         if (!player.canDash && player.hasDash) {
-            // AUDIT UPDATE : Feedback visuel quand le dash se recharge en atterrissant
             spawnParticles(player.x + 12, player.y + 32, '#60a5fa', 10);
         }
         player.squash = 1.4; player.stretch = 0.6; 
@@ -576,25 +563,21 @@ function update() {
         }
     }
 
-    // AUDIT UPDATE : Caméra Axe X et Axe Y !
     let lookAheadX = Math.max(-90, Math.min(90, player.vx * 14));
     let lookAheadY = player.vy > 6 ? player.vy * 6 : 0; 
     
     let targetCamX = player.x - canvas.width / 2 + player.width / 2 + lookAheadX;
     let targetCamY = player.y - canvas.height / 2 + player.height / 2 + lookAheadY;
     
-    // Limites de la caméra sur l'Axe X
     if (targetCamX < 0) targetCamX = 0; 
     if (targetCamX > levelData.width - canvas.width) targetCamX = levelData.width - canvas.width;
     
-    // Limite de la caméra sur l'Axe Y (pour ne pas trop voir le vide en dessous du sol)
     let bottomLimit = groundY + 120 - canvas.height;
     if (targetCamY > bottomLimit) targetCamY = bottomLimit;
     
     cameraX += (targetCamX - cameraX) * 0.14;
     cameraY += (targetCamY - cameraY) * 0.14;
 
-    // FIX BUG CRASH : C'est ici que le canvas crashait si la caméra était vérolée par un NaN !
     if (isNaN(cameraX)) cameraX = 0;
     if (isNaN(cameraY)) cameraY = 0;
 
@@ -628,7 +611,6 @@ function update() {
         } else if (frameCount % 60 === 0) spawnText(player.x, player.y - 40, "Tâches ou Coffre manquant !", '#ef4444');
     }
 
-    // Magnétisme des Items
     for (let i = items.length - 1; i >= 0; i--) {
         let item = items[i];
         let distX = (player.x + player.width/2) - (item.x + item.w/2 || item.x);
@@ -835,9 +817,14 @@ function update() {
     }
 
     draw(); gameLoop = requestAnimationFrame(update);
+    keys.jumpJustPressed = false;
+    keys.dashJustPressed = false;
+    keys.interactJustPressed = false;
+
+    draw(); gameLoop = requestAnimationFrame(update);
 }
 
-// --- DESSIN (CANVAS) ---
+
 function drawWorldMap() {
     let bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
     bg.addColorStop(0, '#052e16');
@@ -1078,7 +1065,6 @@ function draw() {
     sunGrad.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(sunX, sunY, sunRadius + 50 + haloPulse, 0, Math.PI*2); ctx.fill();
 
-    // God Rays
     if (time === 'morning' || time === 'midday') {
         ctx.save();
         let rayGrad = ctx.createLinearGradient(sunX, sunY, sunX + 400, sunY + 500);
