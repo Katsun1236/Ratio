@@ -22,7 +22,7 @@ export class SaveSystem {
             }
         };
     }
-    
+    a
     save(gameState, player) {
         const saveData = {
             maxUnlockedLevel: gameState.maxUnlockedLevel,

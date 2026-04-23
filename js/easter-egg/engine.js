@@ -128,6 +128,10 @@ function updateBossUI(boss) {
 function loadLevel(idx) {
     currentLevelIdx = idx; levelData = JSON.parse(JSON.stringify(levels[idx])); 
     if (!levelData) return showWorldMap();
+    
+    // FIX BUG CRASH : On s'assure que le niveau a une largeur par défaut
+    levelData.width = levelData.width || 3000;
+    
     levelData.platforms = levelData.platforms || [];
     levelData.tasks = levelData.tasks || [];
     levelData.water = levelData.water || [];
@@ -138,6 +142,8 @@ function loadLevel(idx) {
     levelData.items = levelData.items || [];
     levelData.npcs = levelData.npcs || [];
     levelData.buzzsaws = levelData.buzzsaws || [];
+    levelData.chests = levelData.chests || []; // FIX : Ne pas effacer les coffres existants
+    
     if (!levelData.goal) levelData.goal = { x: levelData.width - 160, y: groundY - 80, w: 120, h: 80 };
     updateProgressAbilities();
     setMusicMode(levelData.isBoss ? 'boss' : (levelData.time === 'night' ? 'night' : (levelData.time === 'sunset' ? 'sunset' : 'calm')));
@@ -149,7 +155,7 @@ function loadLevel(idx) {
     coyoteFrames = 0; jumpBufferFrames = 0; // Reset timers
 
     enemies = levelData.enemies; items = levelData.items; npcs = levelData.npcs; 
-    buzzsaws = levelData.buzzsaws; chests = [];
+    buzzsaws = levelData.buzzsaws; chests = levelData.chests; // FIX : Charger les coffres du niveau
     completedTasks = 0; levelTasks = levelData.tasks ? levelData.tasks.length : 0;
     particles = []; floatingTexts = []; ghosts = []; activeDialog = null; nearNPC = null;
     levelData.projectiles = []; levelData.switches = []; gameState = 'playing'; hitStopFrames = 0;
@@ -163,6 +169,13 @@ function loadLevel(idx) {
         { x: Math.max(260, Math.floor(levelData.width * 0.5)), y: Math.max(80, groundY - 160), collected: false, kind: 'shears' },
         { x: Math.max(320, Math.floor(levelData.width * 0.78)), y: Math.max(90, groundY - 140), collected: false, kind: 'shovel' }
     ]);
+    
+    // FIX BUG CRASH : Initialiser les baseY pour éviter les valeurs NaN (Not a Number) avec le magnétisme
+    if (items) items.forEach(i => i.baseY = i.baseY !== undefined ? i.baseY : i.y);
+    if (enemies) enemies.forEach(e => e.baseY = e.baseY !== undefined ? e.baseY : e.y);
+    if (levelData.stars) levelData.stars.forEach(s => s.baseY = s.baseY !== undefined ? s.baseY : s.y);
+    if (levelData.tools) levelData.tools.forEach(t => t.baseY = t.baseY !== undefined ? t.baseY : t.y);
+
     for (let i = 0; i < levelData.stars.length; i++) {
         if (i < levelStarsCollected[idx]) levelData.stars[i].collected = true;
     }
@@ -173,6 +186,7 @@ function loadLevel(idx) {
     if (levelData.boss) {
         levelData.boss.phase = 1; levelData.boss.state = 'idle'; levelData.boss.shield = false;
         levelData.boss.invincible = false; levelData.boss.hasDoneIntro = false; levelData.boss.isActive = false; 
+        levelData.boss.startX = levelData.boss.x; // FIX : Mémoriser le X pour le restart
     }
     
     document.getElementById('game-ui-level').innerText = "NIVEAU " + (idx + 1) + " - " + levelData.name;
@@ -601,8 +615,12 @@ function update() {
         if (s.collected) continue;
         let distX = (player.x + player.width/2) - s.x;
         let distY = (player.y + player.height/2) - s.y;
-        if (Math.sqrt(distX*distX + distY*distY) < 120) { s.x += distX * 0.08; s.y += distY * 0.08; }
-        else s.y += Math.sin(frameCount * 0.08 + s.x * 0.01) * 0.3;
+        if (Math.sqrt(distX*distX + distY*distY) < 120) { 
+            s.x += distX * 0.08; 
+            s.baseY += distY * 0.08; 
+        }
+        // FIX BUG : Assigner la vraie position à partir du baseY
+        s.y = s.baseY + Math.sin(frameCount * 0.08 + s.x * 0.01) * 5;
 
         if (checkCollision(player, { x: s.x - 10, y: s.y - 10, w: 20, h: 20 })) {
             s.collected = true;
@@ -618,8 +636,12 @@ function update() {
         if (tool.collected) continue;
         let distX = (player.x + player.width/2) - tool.x;
         let distY = (player.y + player.height/2) - tool.y;
-        if (Math.sqrt(distX*distX + distY*distY) < 120) { tool.x += distX * 0.08; tool.y += distY * 0.08; }
-        else tool.y += Math.sin(frameCount * 0.07 + tool.x * 0.015) * 0.25;
+        if (Math.sqrt(distX*distX + distY*distY) < 120) { 
+            tool.x += distX * 0.08; 
+            tool.baseY += distY * 0.08; 
+        }
+        // FIX BUG : Assigner la vraie position à partir du baseY
+        tool.y = tool.baseY + Math.sin(frameCount * 0.07 + tool.x * 0.015) * 4;
 
         if (checkCollision(player, { x: tool.x - 12, y: tool.y - 12, w: 24, h: 24 })) {
             tool.collected = true;
@@ -879,7 +901,7 @@ function drawWorldMap() {
     ctx.fillStyle = '#e2e8f0';
     ctx.textAlign = "left";
     ctx.font = "bold 24px Arial";
-    ctx.fillText(`Niveau ${mapSelectedLevel + 1} - ${level.name}`, 184, 425);
+    ctx.fillText(`Niveau ${mapSelectedLevel + 1} - ${level.name || 'Jardin Inconnu'}`, 184, 425);
     ctx.font = "16px Arial";
     const selectedUnlocked = isLevelUnlocked(mapSelectedLevel);
     const starRequirement = mapSelectedLevel <= 2 ? 0 : (mapSelectedLevel - 2) * 3;
