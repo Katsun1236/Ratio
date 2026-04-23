@@ -4,225 +4,72 @@
     "ambience": "orchard",
     "mapX": 140,
     "mapY": 360,
-    "width": 3500,
-    "goal": {
-        "x": 3200,
-        "y": 400,
-        "w": 120,
-        "h": 80
-    },
+    "width": 7000,
+    "goal": { "x": 6700, "y": 400, "w": 120, "h": 80 },
     "checkpoints": [
-        {
-            "x": 1600,
-            "y": 420,
-            "w": 20,
-            "h": 60,
-            "active": false
-        }
+        { "x": 2000, "y": 420, "w": 20, "h": 60, "active": false },
+        { "x": 4200, "y": 420, "w": 20, "h": 60, "active": false }
     ],
     "platforms": [
-        {
-            "x": 0,
-            "y": 480,
-            "w": 3500,
-            "h": 80,
-            "type": "normal"
-        },
-        {
-            "x": 600,
-            "y": 360,
-            "w": 150,
-            "h": 20,
-            "type": "normal"
-        },
-        {
-            "x": 1000,
-            "y": 270,
-            "w": 150,
-            "h": 20,
-            "type": "normal"
-        },
-        {
-            "x": 1300,
-            "y": 360,
-            "w": 150,
-            "h": 20,
-            "type": "normal"
-        },
-        {
-            "x": 1900,
-            "y": 320,
-            "w": 100,
-            "h": 20,
-            "type": "ghost_plat",
-            "timer": 0,
-            "active": true
-        },
-        {
-            "x": 2200,
-            "y": 220,
-            "w": 100,
-            "h": 20,
-            "type": "ghost_plat",
-            "timer": 60,
-            "active": false
-        },
-        {
-            "x": 2550,
-            "y": 300,
-            "w": 140,
-            "h": 20,
-            "type": "normal"
-        }
+        { "x": 0, "y": 480, "w": 900, "h": 2000, "type": "normal" },
+        { "x": 1050, "y": 430, "w": 200, "h": 20, "type": "normal" },
+        { "x": 1400, "y": 380, "w": 200, "h": 20, "type": "normal" },
+        { "x": 1700, "y": 300, "w": 100, "h": 20, "type": "normal" },
+        { "x": 1550, "y": 200, "w": 100, "h": 20, "type": "normal" },
+        { "x": 1800, "y": 100, "w": 200, "h": 20, "type": "normal" },
+        { "x": 2000, "y": 480, "w": 900, "h": 2000, "type": "normal" },
+        { "x": 2900, "y": 430, "w": 200, "h": 80, "type": "fragile", "timer": 0, "state": "idle" },
+        { "x": 3100, "y": 380, "w": 200, "h": 20, "type": "fragile", "timer": 0, "state": "idle" },
+        { "x": 3500, "y": 350, "w": 120, "h": 20, "type": "ghost_plat", "timer": 0, "active": true },
+        { "x": 3750, "y": 250, "w": 120, "h": 20, "type": "ghost_plat", "timer": 60, "active": false },
+        { "x": 3500, "y": 150, "w": 120, "h": 20, "type": "ghost_plat", "timer": 0, "active": true },
+        { "x": 3900, "y": 150, "w": 150, "h": 20, "type": "normal" },
+        { "x": 4000, "y": 480, "w": 800, "h": 2000, "type": "normal" },
+        { "x": 5000, "y": 350, "w": 150, "h": 20, "type": "moving", "minX": 4900, "maxX": 5300, "vx": 2.5 },
+        { "x": 5500, "y": 480, "w": 1500, "h": 2000, "type": "normal" }
     ],
-    "water": [],
-    "windZones": [],
+    "water": [
+        { "x": 900, "y": 520, "w": 150, "h": 80 },
+        { "x": 2900, "y": 520, "w": 1100, "h": 80 }
+    ],
     "buzzsaws": [
-        {
-            "x": 1100,
-            "y": 440,
-            "size": 25,
-            "minX": 1050,
-            "maxX": 1400,
-            "vx": 5
-        }
+        { "x": 2400, "y": 440, "size": 25, "minX": 2300, "maxX": 2700, "vx": 4 },
+        { "x": 4200, "y": 440, "size": 35, "minX": 4100, "maxX": 4600, "vx": 6 }
+    ],
+    "switches": [
+        { "x": 3950, "y": 110, "id": "gate1", "active": false, "type": "lever" }
+    ],
+    "gates": [
+        { "x": 4200, "y": -1000, "w": 40, "h": 1480, "switchId": "gate1", "open": false }
     ],
     "tasks": [
-        {
-            "x": 400,
-            "y": 460,
-            "w": 60,
-            "h": 20,
-            "type": "grass",
-            "done": false,
-            "name": "Tonte"
-        },
-        {
-            "x": 800,
-            "y": 435,
-            "w": 50,
-            "h": 45,
-            "type": "hedge",
-            "done": false,
-            "name": "Taille"
-        },
-        {
-            "x": 1050,
-            "y": 225,
-            "w": 50,
-            "h": 45,
-            "type": "hedge",
-            "done": false,
-            "name": "Taille"
-        },
-        {
-            "x": 2220,
-            "y": 100,
-            "w": 40,
-            "h": 20,
-            "type": "branch",
-            "done": false,
-            "trunkX": 2250,
-            "trunkY": 220,
-            "name": "Élagage"
-        },
-        {
-            "x": 2600,
-            "y": 280,
-            "w": 60,
-            "h": 20,
-            "type": "grass",
-            "done": false,
-            "name": "Tonte"
-        }
+        { "x": 500, "y": 460, "w": 80, "h": 20, "type": "grass", "done": false, "name": "Tonte d'échauffement" },
+        { "x": 1850, "y": 55, "w": 50, "h": 45, "type": "hedge", "done": false, "name": "Taille Suspendue" },
+        { "x": 2700, "y": 360, "w": 40, "h": 20, "type": "branch", "done": false, "trunkX": 2750, "trunkY": 480, "name": "Élagage à risque" },
+        { "x": 4500, "y": 460, "w": 60, "h": 20, "type": "grass", "done": false, "name": "Tonte Post-Porte" }
     ],
     "npcs": [
-        {
-            "x": 200,
-            "y": 444,
-            "w": 20,
-            "h": 36,
-            "color": "#f87171",
-            "name": "Mme. Rose",
-            "dialogs": [
-                "C'est l'heure de tailler ! Appuie DEUX FOIS sur SAUT pour le double saut.",
-                "Attention à la scie circulaire de mon ex-mari plus loin !"
-            ]
-        }
+        { "x": 200, "y": 444, "w": 20, "h": 36, "color": "#f87171", "name": "Mme. Rose", "dialogs": ["Bienvenue ! Les terrains sont plus rudes et vastes.", "Saute avec précision et observe la structure des niveaux !", "Et utilise les LEVIERS pour ouvrir les portes végétales."] },
+        { "x": 2850, "y": 444, "w": 20, "h": 36, "color": "#fcd34d", "name": "Ouvrier Réfléchi", "dialogs": ["La porte du verger est bloquée un peu plus loin !", "Il faudra sauter par-dessus l'eau et grimper sur les plateformes instables..."] }
     ],
     "enemies": [
-        {
-            "x": 700,
-            "y": 456,
-            "w": 24,
-            "h": 24,
-            "type": "snail",
-            "vx": 1.5,
-            "minX": 650,
-            "maxX": 950,
-            "dead": false
-        },
-        {
-            "x": 1600,
-            "y": 456,
-            "w": 24,
-            "h": 24,
-            "type": "snail",
-            "vx": -1.5,
-            "minX": 1500,
-            "maxX": 1750,
-            "dead": false
-        }
+        { "x": 600, "y": 456, "w": 24, "h": 24, "type": "snail", "vx": 1.5, "minX": 550, "maxX": 850, "dead": false },
+        { "x": 1450, "y": 356, "w": 24, "h": 24, "type": "frog", "vx": -1.8, "vy": 0, "baseY": 356, "minX": 1400, "maxX": 1550, "dead": false },
+        { "x": 2500, "y": 456, "w": 24, "h": 24, "type": "snail", "vx": -2.5, "minX": 2200, "maxX": 2800, "dead": false },
+        { "x": 3700, "y": 220, "w": 24, "h": 24, "type": "bee", "vx": 2, "baseY": 220, "minX": 3500, "maxX": 3900, "dead": false },
+        { "x": 4400, "y": 456, "w": 24, "h": 24, "type": "frog", "vx": -2, "vy": 0, "baseY": 456, "minX": 4100, "maxX": 4700, "dead": false },
+        { "x": 5100, "y": 326, "w": 24, "h": 24, "type": "bee", "vx": -3, "baseY": 300, "minX": 4900, "maxX": 5300, "dead": false }
     ],
-    "items": [],
+    "items": [
+        { "x": 3980, "y": 130, "w": 20, "h": 20, "type": "hp", "collected": false }
+    ],
     "decorations": [
-        {
-            "type": "flowerPatch",
-            "x": 320,
-            "y": 464,
-            "w": 90
-        },
-        {
-            "type": "bench",
-            "x": 920,
-            "y": 458
-        },
-        {
-            "type": "treeDecor",
-            "x": 1760,
-            "y": 360,
-            "size": 70
-        },
-        {
-            "type": "lantern",
-            "x": 2460,
-            "y": 395
-        },
-        {
-            "type": "arch",
-            "x": 3090,
-            "y": 420,
-            "w": 80,
-            "h": 60
-        }
+        { "type": "bench", "x": 320, "y": 464 },
+        { "type": "flowerPatch", "x": 1100, "y": 430, "w": 80 },
+        { "type": "treeDecor", "x": 2150, "y": 388, "size": 80 },
+        { "type": "vineWall", "x": 4200, "y": 280, "h": 200 },
+        { "type": "lantern", "x": 4700, "y": 480 },
+        { "type": "arch", "x": 6500, "y": 400, "w": 100, "h": 80 }
     ],
-    "boss": {
-        "x": 2800,
-        "startX": 2800,
-        "y": 340,
-        "w": 80,
-        "h": 140,
-        "hp": 5,
-        "maxHp": 5,
-        "type": "scarecrow",
-        "state": "idle",
-        "timer": 0,
-        "dead": false,
-        "name": "ÉPOUVANTAIL DÉTRAQUÉ",
-        "reward": "walljump",
-        "arenaMin": 2200,
-        "arenaMax": 3300,
-        "hasDoneIntro": false,
-        "isActive": false
-    }
+    "boss": { "x": 6000, "startX": 6000, "y": 340, "w": 80, "h": 140, "hp": 5, "maxHp": 5, "type": "scarecrow", "state": "idle", "timer": 0, "dead": false, "name": "ÉPOUVANTAIL DÉTRAQUÉ", "reward": "walljump", "arenaMin": 5500, "arenaMax": 6800, "hasDoneIntro": false, "isActive": false }
 }

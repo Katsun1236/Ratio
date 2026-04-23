@@ -1,273 +1,85 @@
 {
-    "name": "Les Terres Boueuses",
+    "name": "La Faille Boueuse",
     "time": "midday",
     "ambience": "mudlands",
     "mapX": 280,
     "mapY": 290,
-    "width": 4500,
-    "goal": {
-        "x": 4300,
-        "y": 70,
-        "w": 120,
-        "h": 80
-    },
+    "width": 7500,
+    "goal": { "x": 7200, "y": 400, "w": 120, "h": 80 },
     "checkpoints": [
-        {
-            "x": 1500,
-            "y": 90,
-            "w": 20,
-            "h": 60,
-            "active": false
-        },
-        {
-            "x": 3000,
-            "y": 90,
-            "w": 20,
-            "h": 60,
-            "active": false
-        }
+        { "x": 1850, "y": 240, "w": 20, "h": 60, "active": false },
+        { "x": 4950, "y": 90, "w": 20, "h": 60, "active": false }
     ],
     "platforms": [
-        {
-            "x": 0,
-            "y": 480,
-            "w": 300,
-            "h": 80,
-            "type": "normal"
-        },
-        {
-            "x": 300,
-            "y": 150,
-            "w": 50,
-            "h": 360,
-            "type": "normal"
-        },
-        {
-            "x": 550,
-            "y": 150,
-            "w": 50,
-            "h": 360,
-            "type": "normal"
-        },
-        {
-            "x": 550,
-            "y": 150,
-            "w": 1000,
-            "h": 60,
-            "type": "mud"
-        },
-        {
-            "x": 1550,
-            "y": 150,
-            "w": 1500,
-            "h": 60,
-            "type": "mud"
-        },
-        {
-            "x": 3050,
-            "y": 150,
-            "w": 1500,
-            "h": 60,
-            "type": "normal"
-        },
-        {
-            "x": 1300,
-            "y": 50,
-            "w": 100,
-            "h": 20,
-            "type": "normal"
-        },
-        {
-            "x": 2000,
-            "y": 50,
-            "w": 100,
-            "h": 20,
-            "type": "bouncy"
-        },
-        {
-            "x": 2600,
-            "y": 50,
-            "w": 100,
-            "h": 20,
-            "type": "normal"
-        },
-        {
-            "x": 3400,
-            "y": 40,
-            "w": 120,
-            "h": 20,
-            "type": "fragile",
-            "timer": 0,
-            "state": "idle"
-        }
+        { "x": 0, "y": 480, "w": 600, "h": 2000, "type": "normal" },
+        { "x": 600, "y": 400, "w": 150, "h": 2000, "type": "mud" },
+        { "x": 850, "y": 300, "w": 150, "h": 2000, "type": "mud" },
+        { "x": 1200, "y": 100, "w": 50, "h": 800, "type": "normal" },
+        { "x": 1500, "y": 100, "w": 50, "h": 800, "type": "normal" },
+        { "x": 1550, "y": 300, "w": 600, "h": 2000, "type": "mud" },
+        { "x": 2300, "y": 300, "w": 100, "h": 20, "type": "fragile", "timer": 0, "state": "idle" },
+        { "x": 2600, "y": 300, "w": 100, "h": 20, "type": "fragile", "timer": 0, "state": "idle" },
+        { "x": 2800, "y": 800, "w": 200, "h": 20, "type": "bouncy" },
+        { "x": 3000, "y": 150, "w": 800, "h": 2000, "type": "normal" },
+        { "x": 4300, "y": 350, "w": 150, "h": 20, "type": "moving", "minX": 4300, "maxX": 4700, "vx": 3.5 },
+        { "x": 4900, "y": 150, "w": 400, "h": 2000, "type": "normal" },
+        { "x": 5500, "y": 480, "w": 2000, "h": 2000, "type": "normal" },
+        { "x": 5780, "y": 120, "w": 50, "h": 360, "type": "normal" },
+        { "x": 6480, "y": 120, "w": 50, "h": 360, "type": "normal" }
     ],
-    "water": [],
-    "windZones": [],
+    "water": [
+        { "x": 1200, "y": 650, "w": 400, "h": 200 },
+        { "x": 2150, "y": 900, "w": 1200, "h": 300 }
+    ],
     "buzzsaws": [
-        {
-            "x": 700,
-            "y": 110,
-            "size": 25,
-            "minX": 600,
-            "maxX": 1400,
-            "vx": 5
-        },
-        {
-            "x": 1700,
-            "y": 110,
-            "size": 25,
-            "minX": 1600,
-            "maxX": 2900,
-            "vx": 7
-        }
+        { "x": 1350, "y": 250, "size": 25, "minX": 1250, "maxX": 1450, "vx": 5 },
+        { "x": 1350, "y": 450, "size": 25, "minX": 1250, "maxX": 1450, "vx": -5 },
+        { "x": 3400, "y": 110, "size": 30, "minX": 3100, "maxX": 3700, "vx": 8 }
+    ],
+    "switches": [
+        { "x": 2880, "y": 550, "id": "gate2", "active": false, "type": "button" },
+        { "x": 6500, "y": 140, "id": "boss_drop", "active": false, "type": "button" },
+        { "x": 5800, "y": 140, "id": "boss_drop", "active": false, "type": "button" }
+    ],
+    "gates": [
+        { "x": 3000, "y": -1000, "w": 40, "h": 1150, "switchId": "gate2", "open": false }
     ],
     "tasks": [
-        {
-            "x": 700,
-            "y": 130,
-            "w": 80,
-            "h": 20,
-            "type": "grass",
-            "done": false,
-            "name": "Tonte"
-        },
-        {
-            "x": 1300,
-            "y": 5,
-            "w": 50,
-            "h": 45,
-            "type": "hedge",
-            "done": false,
-            "name": "Taille"
-        },
-        {
-            "x": 2600,
-            "y": 5,
-            "w": 50,
-            "h": 45,
-            "type": "hedge",
-            "done": false,
-            "name": "Taille"
-        },
-        {
-            "x": 3440,
-            "y": -5,
-            "w": 50,
-            "h": 45,
-            "type": "hedge",
-            "done": false,
-            "name": "Taille"
-        }
+        { "x": 400, "y": 460, "w": 80, "h": 20, "type": "grass", "done": false, "name": "Tonte de Départ" },
+        { "x": 1650, "y": 255, "w": 50, "h": 45, "type": "hedge", "done": false, "name": "Taille du Sommet" },
+        { "x": 3200, "y": 130, "w": 80, "h": 20, "type": "grass", "done": false, "name": "Tonte Protégée" },
+        { "x": 5100, "y": 30, "w": 40, "h": 20, "type": "branch", "done": false, "trunkX": 5120, "trunkY": 150, "name": "Élagage du Précipice" }
     ],
     "npcs": [
-        {
-            "x": 150,
-            "y": 444,
-            "w": 20,
-            "h": 36,
-            "color": "#60a5fa",
-            "name": "M. Tulipe",
-            "dialogs": [
-                "Saute contre ce grand mur et maintiens la flèche pour Wall-Jump !",
-                "Attention à la boue en haut, il est impossible de freiner vite !"
-            ]
-        }
+        { "x": 150, "y": 444, "w": 20, "h": 36, "color": "#60a5fa", "name": "M. Tulipe", "dialogs": ["La grande faille te bloque !", "Saute vers le mur, maintiens la direction contre lui pour glisser.", "Puis, appuie sur SAUT pour bondir (Wall-Jump) et éviter les scies !"] },
+        { "x": 2100, "y": 264, "w": 20, "h": 36, "color": "#a78bfa", "name": "Explorateur", "dialogs": ["La porte en haut à droite est fermée...", "J'ai cru voir un BOUTON VOLANT au fond du gouffre...", "Il te faudra te laisser tomber et rebondir pour survivre !"] },
+        { "x": 5550, "y": 444, "w": 20, "h": 36, "color": "#ef4444", "name": "Mme. Rose", "dialogs": ["Le Crapaud-Buffle est invulnérable de l'extérieur !", "Utilise ton Wall-Jump sur les piliers pour atteindre les Boutons...", "Ils déclencheront des enclumes qui lui tomberont sur la tête !"] }
     ],
     "enemies": [
-        {
-            "x": 850,
-            "y": 150,
-            "w": 24,
-            "h": 24,
-            "type": "mole",
-            "vx": 0,
-            "vy": 0,
-            "baseY": 150,
-            "timer": 0,
-            "dead": false
-        },
-        {
-            "x": 1100,
-            "y": 126,
-            "w": 24,
-            "h": 24,
-            "type": "frog",
-            "vx": -1.5,
-            "vy": 0,
-            "baseY": 126,
-            "minX": 1000,
-            "maxX": 1250,
-            "dead": false
-        },
-        {
-            "x": 2400,
-            "y": 126,
-            "w": 24,
-            "h": 24,
-            "type": "snail",
-            "vx": 2,
-            "minX": 2300,
-            "maxX": 2800,
-            "dead": false
-        }
+        { "x": 1700, "y": 276, "w": 24, "h": 24, "type": "mole", "vx": 0, "vy": 0, "baseY": 300, "timer": 0, "dead": false },
+        { "x": 2000, "y": 276, "w": 24, "h": 24, "type": "frog", "vx": -2, "vy": 0, "baseY": 276, "minX": 1850, "maxX": 2100, "dead": false },
+        { "x": 3500, "y": 126, "w": 24, "h": 24, "type": "frog", "vx": 2, "vy": 0, "baseY": 126, "minX": 3250, "maxX": 3700, "dead": false },
+        { "x": 4500, "y": 126, "w": 24, "h": 24, "type": "bee", "vx": 3, "baseY": 200, "minX": 4300, "maxX": 4800, "dead": false },
+        { "x": 5050, "y": 126, "w": 24, "h": 24, "type": "mole", "vx": 0, "vy": 0, "baseY": 150, "timer": 20, "dead": false },
+        { "x": 5700, "y": 456, "w": 24, "h": 24, "type": "snail", "vx": 2, "minX": 5500, "maxX": 6000, "dead": false }
     ],
     "items": [
-        {
-            "x": 1340,
-            "y": -20,
-            "baseY": -20,
-            "w": 20,
-            "h": 20,
-            "type": "hp",
-            "collected": false
-        }
+        { "x": 2650, "y": 250, "w": 20, "h": 20, "type": "hp", "collected": false }
     ],
     "decorations": [
-        {
-            "type": "reed",
-            "x": 760,
-            "y": 110,
-            "h": 40
-        },
-        {
-            "type": "reed",
-            "x": 2100,
-            "y": 110,
-            "h": 36
-        },
-        {
-            "type": "wheelbarrow",
-            "x": 3160,
-            "y": 108
-        },
-        {
-            "type": "barrel",
-            "x": 3540,
-            "y": 112
-        },
-        {
-            "type": "lantern",
-            "x": 4180,
-            "y": 70
-        }
+        { "type": "vineWall", "x": 1200, "y": 100, "h": 600 },
+        { "type": "wheelbarrow", "x": 3160, "y": 140 },
+        { "type": "barrel", "x": 5200, "y": 130 },
+        { "type": "lantern", "x": 5600, "y": 480 }
     ],
-    "boss": {
-        "x": 3700,
-        "startX": 3700,
-        "y": 50,
-        "w": 100,
-        "h": 100,
-        "hp": 8,
-        "maxHp": 8,
-        "type": "toad",
-        "state": "idle",
-        "timer": 0,
-        "dead": false,
-        "name": "CRAPAUD-BUFFLE",
-        "reward": "dash",
-        "arenaMin": 3400,
-        "arenaMax": 4100,
-        "hasDoneIntro": false,
-        "isActive": false
-    }
+    "boss": { "x": 6200, "startX": 6200, "y": 380, "w": 100, "h": 100, "hp": 8, "maxHp": 8, "type": "toad", "state": "idle", "timer": 0, "dead": false, "name": "CRAPAUD-BUFFLE", "reward": "dash", "arenaMin": 5600, "arenaMax": 6900, "hasDoneIntro": false, "isActive": false },
+    "stars": [
+        { "x": 1350, "y": 350, "collected": false },
+        { "x": 2900, "y": 650, "collected": false },
+        { "x": 4500, "y": 250, "collected": false }
+    ],
+    "tools": [
+        { "x": 750, "y": 300, "collected": false },
+        { "x": 3250, "y": 50, "collected": false }
+    ]
 }

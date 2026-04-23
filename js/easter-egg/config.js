@@ -1,6 +1,3 @@
-// js/easter-egg/config.js
-// Niveaux XL (jusqu'à 5000px), Boss, Scies circulaires, Boue, Vent.
-
 export const groundY = 480;
 
 export const clouds = Array.from({length: 15}, () => ({ 
@@ -15,60 +12,135 @@ export const stars = Array.from({length: 120}, () => ({
 
 export const levels = [
     {   // NIVEAU 1 : Apprentissage (Double Saut)
-        name: "Le Verger Paisible", time: "morning", ambience: "orchard", mapX: 140, mapY: 360, width: 3500, goal: { x: 3300, y: groundY - 80, w: 120, h: 80 }, 
-        checkpoints: [{ x: 1600, y: groundY - 60, w: 20, h: 60, active: false }],
+        name: "Le Verger Paisible", time: "morning", ambience: "orchard", mapX: 140, mapY: 360, width: 7000, goal: { x: 6700, y: groundY - 80, w: 120, h: 80 }, 
+        checkpoints: [{ x: 2000, y: groundY - 60, w: 20, h: 60, active: false }, { x: 4200, y: groundY - 60, w: 20, h: 60, active: false }],
         platforms: [
-            { x: 0, y: groundY, w: 3500, h: 80, type: 'normal' },
-            { x: 600, y: 360, w: 150, h: 20, type: 'normal' },
-            { x: 1000, y: 270, w: 150, h: 20, type: 'normal' },
-            { x: 1300, y: 360, w: 150, h: 20, type: 'normal' },
-            { x: 1900, y: 320, w: 100, h: 20, type: 'ghost_plat', timer: 0, active: true }, 
-            { x: 2200, y: 220, w: 100, h: 20, type: 'ghost_plat', timer: 60, active: false },
-            { x: 2550, y: 300, w: 140, h: 20, type: 'normal' },
+            { x: 0, y: groundY, w: 900, h: 80, type: 'normal' },
+            { x: 1050, y: groundY - 50, w: 200, h: 20, type: 'normal' },
+            { x: 1400, y: groundY - 100, w: 200, h: 20, type: 'normal' },
+            // Vertical Tree Climb
+            { x: 1700, y: 300, w: 100, h: 20, type: 'normal' },
+            { x: 1550, y: 200, w: 100, h: 20, type: 'normal' },
+            { x: 1800, y: 100, w: 200, h: 20, type: 'normal' },
+            
+            // Bridge over water
+            { x: 2000, y: groundY, w: 900, h: 80, type: 'normal' },
+            { x: 2900, y: groundY - 50, w: 200, h: 80, type: 'fragile', timer: 0, state: 'idle' },
+            { x: 3100, y: groundY - 100, w: 200, h: 20, type: 'fragile', timer: 0, state: 'idle' },
+            
+            // Puzzle zone: Ghost plates & Switch
+            { x: 3500, y: 350, w: 120, h: 20, type: 'ghost_plat', timer: 0, active: true },
+            { x: 3750, y: 250, w: 120, h: 20, type: 'ghost_plat', timer: 60, active: false },
+            { x: 3500, y: 150, w: 120, h: 20, type: 'ghost_plat', timer: 0, active: true },
+            { x: 3900, y: 150, w: 150, h: 20, type: 'normal' }, // Switch platform
+            
+            { x: 4000, y: groundY, w: 800, h: 80, type: 'normal' },
+            { x: 5000, y: 350, w: 150, h: 20, type: 'moving', minX: 4900, maxX: 5300, vx: 2.5 },
+            { x: 5500, y: groundY, w: 1500, h: 80, type: 'normal' }
         ],
-        water: [], windZones: [], buzzsaws: [ { x: 1100, y: groundY - 40, size: 25, minX: 1050, maxX: 1400, vx: 5 } ],
+        water: [ { x: 900, y: groundY + 40, w: 150, h: 80 }, { x: 2900, y: groundY + 40, w: 1100, h: 80 } ], 
+        windZones: [], 
+        buzzsaws: [ 
+            { x: 2400, y: groundY - 40, size: 25, minX: 2300, maxX: 2700, vx: 4 },
+            { x: 4200, y: groundY - 40, size: 35, minX: 4100, maxX: 4600, vx: 6 }
+        ],
+        switches: [ { x: 3950, y: 110, id: 'gate1', active: false, type: 'lever' } ],
+        gates: [ { x: 4200, y: groundY - 200, w: 40, h: 200, switchId: 'gate1', open: false } ],
         tasks: [
-            { x: 400, y: groundY - 20, w: 60, h: 20, type: 'grass', done: false, name: 'Tonte' },
-            { x: 800, y: groundY - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille' },
-            { x: 1050, y: 270 - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille' },
-            { x: 2220, y: 220 - 120, w: 40, h: 20, type: 'branch', done: false, trunkX: 2250, trunkY: 220, name: 'Élagage' },
-            { x: 2600, y: 300 - 20, w: 60, h: 20, type: 'grass', done: false, name: 'Tonte' },
+            { x: 500, y: groundY - 20, w: 80, h: 20, type: 'grass', done: false, name: 'Tonte d\'échauffement' },
+            { x: 1850, y: 100 - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille Suspendue' },
+            { x: 2700, y: groundY - 120, w: 40, h: 20, type: 'branch', done: false, trunkX: 2750, trunkY: groundY, name: 'Élagage à risque' },
+            { x: 4500, y: groundY - 20, w: 60, h: 20, type: 'grass', done: false, name: 'Tonte Post-Porte' },
         ],
-        npcs: [ { x: 200, y: groundY - 36, w: 20, h: 36, color: '#f87171', name: "Mme. Rose", dialogs: ["C'est l'heure de tailler ! Appuie DEUX FOIS sur SAUT pour le double saut.", "Attention à la scie circulaire de mon ex-mari plus loin !"] } ],
-        enemies: [ { x: 700, y: groundY - 24, w: 24, h: 24, type: 'snail', vx: 1.5, minX: 650, maxX: 950, dead: false }, { x: 1600, y: groundY - 24, w: 24, h: 24, type: 'snail', vx: -1.5, minX: 1500, maxX: 1750, dead: false } ], 
-        items: [],
+        npcs: [ 
+            { x: 200, y: groundY - 36, w: 20, h: 36, color: '#f87171', name: "Mme. Rose", dialogs: ["Bienvenue ! Les terrains sont plus rudes et vastes.", "Saute avec précision et observe la structure des niveaux !", "Et utilise les LEVIERS pour ouvrir les portes végétales."] },
+            { x: 3400, y: groundY + 40, w: 20, h: 36, color: '#fcd34d', name: "Ouvrier Coincé", dialogs: ["La porte là-bas est bloquée !", "Il faut grimper sur les plateformes fantômes pour trouver le Mécanisme..."] }
+        ],
+        enemies: [ 
+            { x: 600, y: groundY - 24, w: 24, h: 24, type: 'snail', vx: 1.5, minX: 550, maxX: 850, dead: false },
+            { x: 1450, y: groundY - 100 - 24, w: 24, h: 24, type: 'frog', vx: -1.8, vy: 0, baseY: groundY - 100 - 24, minX: 1400, maxX: 1550, dead: false },
+            { x: 2500, y: groundY - 24, w: 24, h: 24, type: 'snail', vx: -2.5, minX: 2200, maxX: 2800, dead: false },
+            { x: 3700, y: 220, w: 24, h: 24, type: 'bee', vx: 2, baseY: 220, minX: 3500, maxX: 3900, dead: false },
+            { x: 4400, y: groundY - 24, w: 24, h: 24, type: 'frog', vx: -2, vy: 0, baseY: groundY - 24, minX: 4100, maxX: 4700, dead: false },
+            { x: 5100, y: 350 - 24, w: 24, h: 24, type: 'bee', vx: -3, baseY: 300, minX: 4900, maxX: 5300, dead: false }
+        ], 
+        items: [ { x: 3980, y: 130, baseY: 130, w: 20, h: 20, type: 'hp', collected: false } ],
+        stars: [ { x: 1850, y: 50, baseY: 50, collected: false }, { x: 3550, y: 180, baseY: 180, collected: false }, { x: 5050, y: 220, baseY: 220, collected: false } ],
+        tools: [ { x: 700, y: groundY - 40, baseY: groundY - 40, collected: false }, { x: 2800, y: groundY - 180, baseY: groundY - 180, collected: false } ],
         decorations: [
-            { type: 'flowerPatch', x: 320, y: groundY - 16, w: 90 },
-            { type: 'bench', x: 920, y: groundY - 22 },
-            { type: 'treeDecor', x: 1760, y: groundY - 120, size: 70 },
-            { type: 'lantern', x: 2460, y: groundY - 85 },
-            { type: 'arch', x: 3090, y: groundY - 60, w: 80, h: 60 }
+            { type: 'bench', x: 320, y: groundY - 22 },
+            { type: 'flowerPatch', x: 1100, y: groundY - 50 - 16, w: 80 },
+            { type: 'treeDecor', x: 2150, y: groundY - 120, size: 80 },
+            { type: 'vineWall', x: 4200, y: groundY - 200, h: 200 },
+            { type: 'lantern', x: 4700, y: groundY - 85 },
+            { type: 'arch', x: 6500, y: groundY - 60, w: 100, h: 80 }
         ],
-        boss: { x: 2800, startX: 2800, y: groundY - 140, w: 80, h: 140, hp: 5, maxHp: 5, type: 'scarecrow', state: 'idle', timer: 0, dead: false, name: "ÉPOUVANTAIL DÉTRAQUÉ", reward: "walljump", arenaMin: 2200, arenaMax: 3300, hasDoneIntro: false, isActive: false }
+        boss: { x: 6000, startX: 6000, y: groundY - 140, w: 80, h: 140, hp: 5, maxHp: 5, type: 'scarecrow', state: 'idle', timer: 0, dead: false, name: "ÉPOUVANTAIL DÉTRAQUÉ", reward: "walljump", arenaMin: 5500, arenaMax: 6800, hasDoneIntro: false, isActive: false }
     },
     {   // NIVEAU 2 : Précision, Boue & Wall-Jump
-        name: "Les Terres Boueuses", time: "midday", ambience: "mudlands", mapX: 280, mapY: 290, width: 4500, goal: { x: 4300, y: 150 - 80, w: 120, h: 80 }, 
-        checkpoints: [ { x: 1500, y: 150 - 60, w: 20, h: 60, active: false }, { x: 3000, y: 150 - 60, w: 20, h: 60, active: false } ],
+        name: "La Faille Boueuse", time: "midday", ambience: "mudlands", mapX: 280, mapY: 290, width: 7500, goal: { x: 7200, y: groundY - 80, w: 120, h: 80 }, 
+        checkpoints: [ { x: 1850, y: 300 - 60, w: 20, h: 60, active: false }, { x: 4950, y: 150 - 60, w: 20, h: 60, active: false } ],
         platforms: [
-            { x: 0, y: groundY, w: 300, h: 80, type: 'normal' }, { x: 300, y: 150, w: 50, h: 360, type: 'normal' }, { x: 550, y: 150, w: 50, h: 360, type: 'normal' }, 
-            { x: 550, y: 150, w: 1000, h: 60, type: 'mud' }, { x: 1550, y: 150, w: 1500, h: 60, type: 'mud' }, { x: 3050, y: 150, w: 1500, h: 60, type: 'normal' }, 
-            { x: 1300, y: 50, w: 100, h: 20, type: 'normal' }, { x: 2000, y: 50, w: 100, h: 20, type: 'bouncy' }, { x: 2600, y: 50, w: 100, h: 20, type: 'normal' },
-            { x: 3400, y: 40, w: 120, h: 20, type: 'fragile', timer: 0, state: 'idle' }
+            { x: 0, y: groundY, w: 600, h: 80, type: 'normal' },
+            // Grand toboggan de boue descendant
+            { x: 600, y: 400, w: 150, h: 200, type: 'mud' }, 
+            { x: 850, y: 300, w: 150, h: 300, type: 'mud' },  
+            
+            // Wall jump chasm avec Scies
+            { x: 1200, y: 100, w: 50, h: 600, type: 'normal' },
+            { x: 1500, y: 100, w: 50, h: 600, type: 'normal' },
+            
+            // Arrivée Walljump
+            { x: 1550, y: 300, w: 600, h: 60, type: 'mud' }, 
+            
+            // Énigme de la chûte (faut descendre pour activer le switch et rebondir)
+            { x: 2300, y: 300, w: 100, h: 20, type: 'fragile', timer: 0, state: 'idle' },
+            { x: 2600, y: 300, w: 100, h: 20, type: 'fragile', timer: 0, state: 'idle' },
+            { x: 2800, y: 800, w: 200, h: 20, type: 'bouncy' }, // Huge fall !
+            
+            { x: 3000, y: 150, w: 800, h: 60, type: 'normal' }, 
+            
+            { x: 4300, y: 350, w: 150, h: 20, type: 'moving', minX: 4300, maxX: 4700, vx: 3.5 },
+            { x: 4900, y: 150, w: 400, h: 60, type: 'normal' },
+            { x: 5500, y: groundY, w: 2000, h: 80, type: 'normal' }
         ],
-        water: [], windZones: [],
-        buzzsaws: [ { x: 700, y: 110, size: 25, minX: 600, maxX: 1400, vx: 5 }, { x: 1700, y: 110, size: 25, minX: 1600, maxX: 2900, vx: 7 } ],
-        tasks: [ { x: 700, y: 150 - 20, w: 80, h: 20, type: 'grass', done: false, name: 'Tonte' }, { x: 1300, y: 50 - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille' }, { x: 2600, y: 50 - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille' }, { x: 3440, y: 40 - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille' } ],
-        npcs: [ { x: 150, y: groundY - 36, w: 20, h: 36, color: '#60a5fa', name: "M. Tulipe", dialogs: ["Saute contre ce grand mur et maintiens la flèche pour Wall-Jump !", "Attention à la boue en haut, il est impossible de freiner vite !"] } ],
-        enemies: [ { x: 850, y: 150, w: 24, h: 24, type: 'mole', vx: 0, vy: 0, baseY: 150, timer: 0, dead: false }, { x: 1100, y: 150 - 24, w: 24, h: 24, type: 'frog', vx: -1.5, vy: 0, baseY: 150 - 24, minX: 1000, maxX: 1250, dead: false }, { x: 2400, y: 150 - 24, w: 24, h: 24, type: 'snail', vx: 2, minX: 2300, maxX: 2800, dead: false } ],
-        items: [ { x: 1340, y: -20, baseY: -20, w: 20, h: 20, type: 'hp', collected: false } ],
+        water: [ { x: 1200, y: 650, w: 400, h: 200 }, { x: 2150, y: 900, w: 1200, h: 200 } ], 
+        windZones: [],
+        buzzsaws: [ 
+            { x: 1350, y: 250, size: 25, minX: 1250, maxX: 1450, vx: 5 }, 
+            { x: 1350, y: 450, size: 25, minX: 1250, maxX: 1450, vx: -5 }, 
+            { x: 3400, y: 110, size: 30, minX: 3100, maxX: 3700, vx: 8 } 
+        ],
+        switches: [ { x: 2880, y: 550, id: 'gate2', active: false, type: 'button' } ], 
+        gates: [ { x: 3000, y: -50, w: 40, h: 200, switchId: 'gate2', open: false } ],
+        tasks: [ 
+            { x: 400, y: groundY - 20, w: 80, h: 20, type: 'grass', done: false, name: 'Tonte de Départ' },
+            { x: 1650, y: 300 - 45, w: 50, h: 45, type: 'hedge', done: false, name: 'Taille du Sommet' },
+            { x: 3200, y: 150 - 20, w: 80, h: 20, type: 'grass', done: false, name: 'Tonte Protégée' },
+            { x: 5100, y: 150 - 120, w: 40, h: 20, type: 'branch', done: false, trunkX: 5120, trunkY: 150, name: 'Élagage du Précipice' }
+        ],
+        npcs: [ 
+            { x: 150, y: groundY - 36, w: 20, h: 36, color: '#60a5fa', name: "M. Tulipe", dialogs: ["La grande faille te bloque !", "Saute vers le mur, maintiens la direction contre lui pour glisser.", "Puis, appuie sur SAUT pour bondir (Wall-Jump) et éviter les scies !"] },
+            { x: 2150, y: 300 - 36, w: 20, h: 36, color: '#a78bfa', name: "Explorateur", dialogs: ["La porte en haut à droite est fermée...", "J'ai cru voir un BOUTON VOLANT au fond du gouffre...", "Il te faudra te laisser tomber et rebondir pour survivre !"] }
+        ],
+        enemies: [ 
+            { x: 1700, y: 300 - 24, w: 24, h: 24, type: 'mole', vx: 0, vy: 0, baseY: 300, timer: 0, dead: false },
+            { x: 2000, y: 300 - 24, w: 24, h: 24, type: 'frog', vx: -2, vy: 0, baseY: 300 - 24, minX: 1850, maxX: 2100, dead: false },
+            { x: 3500, y: 150 - 24, w: 24, h: 24, type: 'frog', vx: 2, vy: 0, baseY: 150 - 24, minX: 3250, maxX: 3700, dead: false },
+            { x: 4500, y: 150 - 24, w: 24, h: 24, type: 'bee', vx: 3, baseY: 200, minX: 4300, maxX: 4800, dead: false },
+            { x: 5050, y: 150 - 24, w: 24, h: 24, type: 'mole', vx: 0, vy: 0, baseY: 150, timer: 20, dead: false },
+            { x: 5700, y: groundY - 24, w: 24, h: 24, type: 'snail', vx: 2, minX: 5500, maxX: 6000, dead: false }
+        ],
+        items: [ { x: 2650, y: 250, baseY: 250, w: 20, h: 20, type: 'hp', collected: false } ],
+        stars: [ { x: 1350, y: 350, baseY: 350, collected: false }, { x: 2900, y: 650, baseY: 650, collected: false }, { x: 4500, y: 250, baseY: 250, collected: false } ],
+        tools: [ { x: 750, y: 300, baseY: 300, collected: false }, { x: 3250, y: 50, baseY: 50, collected: false } ],
         decorations: [
-            { type: 'reed', x: 760, y: 110, h: 40 },
-            { type: 'reed', x: 2100, y: 110, h: 36 },
-            { type: 'wheelbarrow', x: 3160, y: 108 },
-            { type: 'barrel', x: 3540, y: 112 },
-            { type: 'lantern', x: 4180, y: 70 }
+            { type: 'vineWall', x: 1200, y: 100, h: 600 },
+            { type: 'wheelbarrow', x: 3160, y: 150 - 10 },
+            { type: 'barrel', x: 5200, y: 150 },
+            { type: 'lantern', x: 5600, y: groundY - 24 }
         ],
-        boss: { x: 3700, startX: 3700, y: 150 - 100, w: 100, h: 100, hp: 8, maxHp: 8, type: 'toad', state: 'idle', timer: 0, dead: false, name: "CRAPAUD-BUFFLE", reward: "dash", arenaMin: 3400, arenaMax: 4100, hasDoneIntro: false, isActive: false }
+        boss: { x: 6200, startX: 6200, y: groundY - 100, w: 100, h: 100, hp: 8, maxHp: 8, type: 'toad', state: 'idle', timer: 0, dead: false, name: "CRAPAUD-BUFFLE", reward: "dash", arenaMin: 5600, arenaMax: 6900, hasDoneIntro: false, isActive: false }
     },
     {   // NIVEAU 3 : Les Courants d'air et le Dash
         name: "Les Hauts Vents", time: "sunset", ambience: "windgarden", mapX: 430, mapY: 220, width: 5000, goal: { x: 4800, y: groundY - 80, w: 120, h: 80 },
