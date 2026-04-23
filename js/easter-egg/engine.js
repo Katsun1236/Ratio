@@ -2,6 +2,7 @@
 // NOUVEAUX GRAPHISMES : Draw personnalisé pour chaque entité.
 // NOUVELLE IA BOSS : Vrais patterns d'attaque continus.
 // AUDIT UPDATE : Coyote Time, Jump Buffering, Magnétisme, Saut variable et Caméra Axe Y.
+// PATCH : Bouclier anti-NaN et sanitation complète des JSON pour éviter les crashs.
 
 import { groundY, clouds, stars, levels } from './config.js';
 import { keys } from './input.js';
@@ -126,8 +127,15 @@ function updateBossUI(boss) {
 }
 
 function loadLevel(idx) {
-    currentLevelIdx = idx; levelData = JSON.parse(JSON.stringify(levels[idx])); 
-    if (!levelData) return showWorldMap();
+    currentLevelIdx = idx; 
+    
+    // FIX CRASH : Protection si le niveau n'existe pas dans le tableau
+    if (!levels[idx]) {
+        console.warn("Niveau introuvable ! Retour à la carte.");
+        return showWorldMap();
+    }
+    
+    levelData = JSON.parse(JSON.stringify(levels[idx])); 
     
     // FIX BUG CRASH : On s'assure que le niveau a une largeur par défaut
     levelData.width = levelData.width || 3000;
@@ -142,8 +150,27 @@ function loadLevel(idx) {
     levelData.items = levelData.items || [];
     levelData.npcs = levelData.npcs || [];
     levelData.buzzsaws = levelData.buzzsaws || [];
-    levelData.chests = levelData.chests || []; // FIX : Ne pas effacer les coffres existants
+    levelData.chests = levelData.chests || []; 
     
+    // FIX BUG CRASH : BOUCLIER ANTI-NaN MASSIF
+    // Si une propriété vitale est manquante dans le JSON, on la remplace ici pour éviter que le jeu ne crashe.
+    levelData.platforms.forEach(p => {
+        if (p.type === 'moving') { p.vx = p.vx || 0; p.minX = p.minX || p.x; p.maxX = p.maxX || (p.x + 200); }
+        if (p.type === 'ghost_plat' || p.type === 'fragile') p.timer = p.timer || 0;
+    });
+    levelData.enemies.forEach(e => {
+        e.vx = e.vx || 0; e.vy = e.vy || 0; e.timer = e.timer || 0;
+        e.baseY = e.baseY !== undefined ? e.baseY : e.y;
+        e.minX = e.minX !== undefined ? e.minX : (e.x - 100);
+        e.maxX = e.maxX !== undefined ? e.maxX : (e.x + 100);
+    });
+    levelData.buzzsaws.forEach(s => {
+        s.vx = s.vx || 0; s.size = s.size || 15;
+        s.minX = s.minX !== undefined ? s.minX : (s.x - 50);
+        s.maxX = s.maxX !== undefined ? s.maxX : (s.x + 50);
+    });
+    levelData.items.forEach(i => i.baseY = i.baseY !== undefined ? i.baseY : i.y);
+
     if (!levelData.goal) levelData.goal = { x: levelData.width - 160, y: groundY - 80, w: 120, h: 80 };
     updateProgressAbilities();
     setMusicMode(levelData.isBoss ? 'boss' : (levelData.time === 'night' ? 'night' : (levelData.time === 'sunset' ? 'sunset' : 'calm')));
@@ -155,10 +182,11 @@ function loadLevel(idx) {
     coyoteFrames = 0; jumpBufferFrames = 0; // Reset timers
 
     enemies = levelData.enemies; items = levelData.items; npcs = levelData.npcs; 
-    buzzsaws = levelData.buzzsaws; chests = levelData.chests; // FIX : Charger les coffres du niveau
+    buzzsaws = levelData.buzzsaws; chests = levelData.chests; 
     completedTasks = 0; levelTasks = levelData.tasks ? levelData.tasks.length : 0;
     particles = []; floatingTexts = []; ghosts = []; activeDialog = null; nearNPC = null;
     levelData.projectiles = []; levelData.switches = []; gameState = 'playing'; hitStopFrames = 0;
+    
     levelData.stars = (levelData.stars || [
         { x: Math.max(180, Math.floor(levelData.width * 0.25)), y: Math.max(80, groundY - 130), collected: false },
         { x: Math.max(220, Math.floor(levelData.width * 0.55)), y: Math.max(70, groundY - 180), collected: false },
@@ -170,11 +198,9 @@ function loadLevel(idx) {
         { x: Math.max(320, Math.floor(levelData.width * 0.78)), y: Math.max(90, groundY - 140), collected: false, kind: 'shovel' }
     ]);
     
-    // FIX BUG CRASH : Initialiser les baseY pour éviter les valeurs NaN (Not a Number) avec le magnétisme
-    if (items) items.forEach(i => i.baseY = i.baseY !== undefined ? i.baseY : i.y);
-    if (enemies) enemies.forEach(e => e.baseY = e.baseY !== undefined ? e.baseY : e.y);
-    if (levelData.stars) levelData.stars.forEach(s => s.baseY = s.baseY !== undefined ? s.baseY : s.y);
-    if (levelData.tools) levelData.tools.forEach(t => t.baseY = t.baseY !== undefined ? t.baseY : t.y);
+    // Protection anti-NaN des étoiles et outils
+    levelData.stars.forEach(s => s.baseY = s.baseY !== undefined ? s.baseY : s.y);
+    levelData.tools.forEach(t => t.baseY = t.baseY !== undefined ? t.baseY : t.y);
 
     for (let i = 0; i < levelData.stars.length; i++) {
         if (i < levelStarsCollected[idx]) levelData.stars[i].collected = true;
@@ -441,6 +467,13 @@ function update() {
     if (!player.isDashing && player.wallJumpTimer === 0) { if (player.vx > player.speed) player.vx = player.speed; if (player.vx < -player.speed) player.vx = -player.speed; }
 
     player.x += player.vx;
+    
+    // FIX BUG CRASH : Sécurité ultime anti-NaN pour éviter que le joueur disparaisse
+    if (isNaN(player.x)) player.x = player.spawnX;
+    if (isNaN(player.y)) player.y = player.spawnY;
+    if (isNaN(player.vx)) player.vx = 0;
+    if (isNaN(player.vy)) player.vy = 0;
+
     if (player.x < -20) { showWorldMap(); return; }
     if (player.x + player.width > levelData.width) { player.x = levelData.width - player.width; player.vx = 0; }
 
@@ -462,7 +495,7 @@ function update() {
 
     if (!player.isDashing) { 
         player.vy += gravity; 
-        // AUDIT UPDATE : Hauteur de saut variable (plus on lâche vite, plus on retombe vite)
+        // AUDIT UPDATE : Hauteur de saut variable
         if (!keys.jump && player.vy < -2 && player.wallJumpTimer === 0) {
             player.vy *= 0.85; 
         }
@@ -545,7 +578,7 @@ function update() {
 
     // AUDIT UPDATE : Caméra Axe X et Axe Y !
     let lookAheadX = Math.max(-90, Math.min(90, player.vx * 14));
-    let lookAheadY = player.vy > 6 ? player.vy * 6 : 0; // Regarde légèrement en bas si on tombe vite
+    let lookAheadY = player.vy > 6 ? player.vy * 6 : 0; 
     
     let targetCamX = player.x - canvas.width / 2 + player.width / 2 + lookAheadX;
     let targetCamY = player.y - canvas.height / 2 + player.height / 2 + lookAheadY;
@@ -560,6 +593,10 @@ function update() {
     
     cameraX += (targetCamX - cameraX) * 0.14;
     cameraY += (targetCamY - cameraY) * 0.14;
+
+    // FIX BUG CRASH : C'est ici que le canvas crashait si la caméra était vérolée par un NaN !
+    if (isNaN(cameraX)) cameraX = 0;
+    if (isNaN(cameraY)) cameraY = 0;
 
     if (screenShake > 0) { ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake); screenShake *= 0.9; }
 
@@ -619,7 +656,6 @@ function update() {
             s.x += distX * 0.08; 
             s.baseY += distY * 0.08; 
         }
-        // FIX BUG : Assigner la vraie position à partir du baseY
         s.y = s.baseY + Math.sin(frameCount * 0.08 + s.x * 0.01) * 5;
 
         if (checkCollision(player, { x: s.x - 10, y: s.y - 10, w: 20, h: 20 })) {
@@ -640,7 +676,6 @@ function update() {
             tool.x += distX * 0.08; 
             tool.baseY += distY * 0.08; 
         }
-        // FIX BUG : Assigner la vraie position à partir du baseY
         tool.y = tool.baseY + Math.sin(frameCount * 0.07 + tool.x * 0.015) * 4;
 
         if (checkCollision(player, { x: tool.x - 12, y: tool.y - 12, w: 24, h: 24 })) {
@@ -787,7 +822,6 @@ function update() {
             }
         }
         
-        // AUDIT UPDATE : Feedback épique pour la mort du Boss Final
         if (b.dead && b.state === 'dying') {
             b.deathTimer++;
             if (b.deathTimer === 1) { hitStopFrames = 25; screenShake = 30; playSound('boss_hit'); }
@@ -1030,13 +1064,11 @@ function draw() {
         ctx.fillStyle = '#fff';
         stars.forEach(s => {
             ctx.globalAlpha = Math.sin(frameCount * s.twinkleSpeed) * 0.5 + 0.5;
-            // AUDIT UPDATE : Parallaxe Verticale pour les étoiles
             ctx.beginPath(); ctx.arc(s.x - cameraX * 0.05, s.y - cameraY * 0.05, s.size, 0, Math.PI*2); ctx.fill();
         }); ctx.globalAlpha = 1.0;
     }
     drawAmbientOverlay(time, ambience);
 
-    // AUDIT UPDATE : Parallaxe Verticale pour le Soleil
     let sunX = 700 - (cameraX * 0.03); 
     let sunY = 100 - (cameraY * 0.03); 
     
@@ -1057,7 +1089,6 @@ function draw() {
     }
 
     ctx.save();
-    // AUDIT UPDATE : Parallax Y (Montagnes/Collines lointaines)
     ctx.translate(-cameraX * 0.15, -cameraY * 0.05);
     ctx.fillStyle = (time === 'sunset' || time === 'night') ? '#881337' : '#7dd3fc';
     ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(400, 100); ctx.lineTo(800, groundY); ctx.fill();
@@ -1079,7 +1110,6 @@ function draw() {
         ctx.beginPath(); ctx.arc(i+190, groundY-80, 50, 0, Math.PI*2); ctx.fill();
     }
     
-    // Le monde "réel" bénéficie du reste de la translation (-cameraX, -cameraY total)
     ctx.translate(cameraX * 0.5 - cameraX, cameraY * 0.2 - cameraY); 
     
     ctx.fillStyle = (time === 'sunset' || time === 'night') ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.9)';
@@ -1106,7 +1136,6 @@ function draw() {
     }
     drawDecorations(levelData.decorations);
 
-    // Scies circulaires
     for (let s of buzzsaws) {
         ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(frameCount * 0.2);
         ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.arc(0, 0, s.size, 0, Math.PI*2); ctx.fill();
@@ -1435,7 +1464,6 @@ function draw() {
         ctx.restore();
     }
 
-    // AUDIT UPDATE : Ajustement du brouillard (haze) pour l'axe Y
     let haze = ctx.createLinearGradient(0, cameraY, 0, cameraY + canvas.height);
     haze.addColorStop(0, time === 'night' ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.04)');
     haze.addColorStop(1, time === 'night' ? 'rgba(2, 6, 23, 0.35)' : 'rgba(15, 23, 42, 0.12)');
@@ -1451,7 +1479,6 @@ function draw() {
     ctx.textAlign = "center";
     for (let ft of floatingTexts) {
         ctx.font = `bold ${ft.size} 'Playfair Display', serif`; ctx.fillStyle = ft.color; ctx.globalAlpha = ft.life;
-        // AUDIT UPDATE : Texts avec prise en compte du cameraY
         ctx.fillText(ft.text, ft.x - cameraX, ft.y - cameraY); ctx.globalAlpha = 1.0;
     }
 
