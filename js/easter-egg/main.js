@@ -2,7 +2,7 @@
 // Injecte l'interface (correction de la Boss Bar z-index 50) et lie les modules.
 
 import { initInputs } from './input.js';
-import { initEngine, startGameUI, isGameActive } from './engine-new.js';
+import { initEngine, startGameUI, isGameActive } from './engine.js';
 
 const gameHTML = `
 <div id="easter-egg-game-container" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center p-2 md:p-5 font-sans bg-[radial-gradient(circle_at_top,_#1f2937_0%,_#020617_65%)]">
